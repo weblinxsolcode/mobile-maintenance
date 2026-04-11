@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use Carbon\Carbon;
 use App\Models\JobListings;
+use App\Models\shop;
+use Carbon\Carbon;
 
 class userServices
 {
@@ -29,5 +30,16 @@ class userServices
         $count = $totalJobs->count();
 
         return $code = '#'.$dateNow.'-'.$count;
+    }
+
+    public static function getNearbyShops($latitude, $longitude, $radius)
+    {
+        return shop::selectRaw('*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance', [$latitude, $longitude, $latitude])
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->having('distance', '<=', $radius)
+            ->orderBy('distance')
+            ->where('status', 'active')
+            ->get();
     }
 }

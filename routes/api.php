@@ -29,9 +29,13 @@ Route::post('/social-login', [AuthController::class, 'socialUser']);
 Route::post('/create-shop', [ShopController::class, 'createShop']);
 Route::post('get-shop', [ShopController::class, 'getShop']);
 Route::get('get-all-shop', [ShopController::class, 'getAllShop']);
+Route::post('get-near-by-shop', [ShopController::class, 'getNearByShops']);
 
 // API For Get Management
 Route::post('/get-management', [ManagementController::class, 'getManagement']);
+
+// API For Get Settings
+Route::get('/get-settings', [ManagementController::class, 'getSettings']);
 
 // Job Management
 Route::prefix('job')->group(function () {
@@ -41,4 +45,10 @@ Route::prefix('job')->group(function () {
 
     // Get Job Details
     Route::post('/get-details', [JobController::class, 'getJobDetails']);
+
+    // Accept Offer
+    Route::post('/accept-offer', [JobController::class, 'acceptOffer']);
+
+    // Searching Job
+    Route::post('/searching-job', [JobController::class, 'searchingJob']);
 });

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\ApiController;
 
 use App\Http\Controllers\Controller;
+use App\Models\Settings;
 use App\Models\shop;
 use App\Models\User;
 use App\Services\FileHelper;
+use App\Services\userServices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -115,6 +117,46 @@ class ShopController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $shops,
+        ], 200);
+    }
+
+    public function getNearByShops(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'latitude' => 'required',
+            'longitude' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $settings = Settings::latest()->first();
+        $circleRadius = $settings ? (float) $settings->near_by_location : 10;
+
+        $latitude = $request->latitude;
+        $longitude = $request->longitude;
+
+        // Haversine formula to calculate distance in kilometers
+        $shops = userServices::getNearbyShops($latitude, $longitude, $circleRadius);
+
+        $count = $shops->count();
+
+        if ($shops->isEmpty()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No shops found within '.$circleRadius.'km',
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'count' => $count,
+            'list' => $shops,
         ], 200);
     }
 }

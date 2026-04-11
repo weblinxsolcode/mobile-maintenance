@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Management;
+use App\Models\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -34,6 +35,17 @@ class ManagementController extends Controller
             'message' => $requestedQuery,
             'count' => $count,
             'list' => $list,
+        ], 200);
+    }
+
+    public function getSettings()
+    {
+        $item = Settings::latest()->first();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Settings fetched successfully',
+            'item' => $item,
         ], 200);
     }
 }

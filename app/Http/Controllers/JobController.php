@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\JobApplications;
 use App\Models\JobListings;
 use App\Models\User;
 use App\Services\userServices;
@@ -91,6 +92,81 @@ class JobController extends Controller
         $jobID = $request->job_id;
 
         $job = JobListings::with('jobApplications', 'userInfo')->find($jobID);
+
+        if (! $job) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Job not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Job details fetched successfully',
+            'item' => $job,
+        ], 200);
+    }
+
+    public function acceptOffer(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'application_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $applicationID = $request->application_id;
+
+        $application = JobApplications::find($applicationID);
+
+        if (! $application) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Application not found',
+            ], 404);
+        }
+
+        $application->status = 'accepted';
+        $application->save();
+
+        $item = JobListings::with('jobApplications', 'userInfo')->find($application->job_id);
+
+        $list = JobListings::where('user_id', $item->user_id)->with('jobApplications', 'userInfo')->latest()->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Application accepted successfully',
+            'item' => $item,
+            'count' => $list->count(),
+            'list' => $list,
+        ], 200);
+    }
+
+    public function searchingJob(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'code' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $userID = $request->user_id;
+        $code = $request->code;
+
+        $job = JobListings::where('user_id', $userID)->where('code', $code)->with('jobApplications', 'userInfo')->first();
 
         if (! $job) {
             return response()->json([
