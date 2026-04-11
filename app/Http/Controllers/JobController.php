@@ -63,6 +63,8 @@ class JobController extends Controller
 
         userServices::generateNotification($userID, 'Job Created', 'Your job '.$jobCode.' has been created successfully.');
 
+        userServices::sendPushNotifications($userID, 'Job Created', 'Your job '.$jobCode.' has been created successfully.');
+
         $item = JobListings::with('jobApplications', 'userInfo')->find($job->id);
 
         $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo')->latest()->get();
@@ -138,6 +140,8 @@ class JobController extends Controller
         $application->save();
 
         userServices::generateNotification($application->user_id, 'Offer Accepted', 'Your offer for job ID '.$application->job_id.' has been accepted.');
+
+        userServices::sendPushNotifications($application->user_id, 'Offer Accepted', 'Your offer for job ID '.$application->job_id.' has been accepted.');
 
         $item = JobListings::with('jobApplications', 'userInfo')->find($application->job_id);
 

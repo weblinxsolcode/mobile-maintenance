@@ -6,6 +6,9 @@ use App\Models\JobListings;
 use App\Models\Notifications;
 use App\Models\shop;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\CloudMessage;
 
 class userServices
 {
@@ -44,7 +47,7 @@ class userServices
             ->get();
     }
 
-    public static function generateNotification($user_id, $title, $description)
+    public static function generateNotification($user_id, $title, $description, $idArray = [])
     {
         $notification = new Notifications;
         $notification->user_id = $user_id;
@@ -53,6 +56,29 @@ class userServices
         $notification->is_read = false;
         $notification->save();
 
+        // Send push notification
+        self::sendPushNotifications($user_id, $title, $description);
+
         return $notification;
+    }
+
+    public static function sendPushNotifications($userID, $title, $description)
+    {
+        try {
+            $firebase = (new Factory)->withServiceAccount(base_path('storage/app/google.json'));
+            $messaging = $firebase->createMessaging();
+
+            $message = CloudMessage::fromArray([
+                'notification' => [
+                    'title' => $title,
+                    'body' => $description,
+                ],
+                'topic' => 'notification_'.$userID,
+            ]);
+
+            $messaging->send($message);
+        } catch (\Exception $e) {
+            Log::error('Firebase Push Notification Error: '.$e->getMessage());
+        }
     }
 }
