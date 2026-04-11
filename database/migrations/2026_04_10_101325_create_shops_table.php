@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('shops', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('users_id');
+            $table->unsignedBigInteger('users_id')->nullable();
             $table->foreign('users_id')->references('id')->on('users')->onDelete('cascade');
-            $table->longText('profile')->nullable('default.jpg');
+            $table->longText('profile')->nullable()->default('default.jpg');
             $table->longText('title')->nullable();
             $table->longText('description')->nullable();
             $table->longText('address')->nullable();

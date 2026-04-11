@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-     // API For register User by email
+    // API For register User by email
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -36,8 +36,7 @@ class AuthController extends Controller
         $code = $otp_code;
         $name = $request->full_name ?: $request->email;
 
-
-        $newUser = new User();
+        $newUser = new User;
         $newUser->registration_type = $request->input('registration_type', 'email');
         $newUser->email = $request->email;
         $newUser->full_name = $request->input('full_name', 'null');
@@ -49,7 +48,6 @@ class AuthController extends Controller
 
         // Send OTP Email
         Mail::to($request->email)->send(new OTPCODE($code, $name));
-
 
         return response()->json([
             'status' => 'success',
@@ -76,7 +74,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found',
@@ -145,16 +143,15 @@ class AuthController extends Controller
             ], 200);
         }
 
-
         return response()->json([
             'status' => 'success',
             'message' => 'Login successful',
             'data' => $user,
-            
+
         ], 200);
     }
 
-     // API For Forget Password
+    // API For Forget Password
     public function forgetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -170,7 +167,7 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)->first();
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Email not found',
@@ -190,7 +187,7 @@ class AuthController extends Controller
         ], 200);
     }
 
-     // API For Reset Password
+    // API For Reset Password
     public function resetPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -224,7 +221,6 @@ class AuthController extends Controller
             'data' => $user,
         ], 200);
     }
-
 
     // API For Update password
     public function updatePassword(Request $request)
@@ -280,7 +276,4 @@ class AuthController extends Controller
             'message' => 'Account deleted successfully',
         ], 200);
     }
-
-
-
 }

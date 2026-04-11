@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Notification;
-use App\Models\UserLog;
+use Carbon\Carbon;
+use App\Models\JobListings;
 
 class userServices
 {
@@ -20,36 +20,14 @@ class userServices
         return $code;
     }
 
-    public static function generateEmployeeID()
+    public static function generateCode()
     {
-        $length = intval(env('CODE_LENGTH'));
+        $dateNow = Carbon::now()->format('Ymd');
 
-        $code = '';
+        $totalJobs = JobListings::all();
 
-        for ($i = 0; $i < $length; $i++) {
-            $code .= rand(0, 9);
-        }
+        $count = $totalJobs->count();
 
-        $empID = 'EMP-'.$code;
-
-        return $empID;
-    }
-
-    public static function generateLogs($userID, $type, $log)
-    {
-        $userActivity = new UserLog;
-        $userActivity->user_id = $userID;
-        $userActivity->parent = $type;
-        $userActivity->value = $log;
-        $userActivity->description = $log;
-        $userActivity->save();
-    }
-
-    public static function generateNotifications($title, $description)
-    {
-        $notification = new Notification;
-        $notification->title = $title;
-        $notification->description = $description;
-        $notification->save();
+        return $code = '#'.$dateNow.'-'.$count;
     }
 }

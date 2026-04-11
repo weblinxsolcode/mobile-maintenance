@@ -9,10 +9,9 @@ use App\Services\FileHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-
 class ShopController extends Controller
 {
-    //Api For Shop Create 
+    // Api For Shop Create
     public function createShop(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -33,14 +32,12 @@ class ShopController extends Controller
             ], 422);
         }
 
-
         $usersID = $request->users_id;
         $title = $request->title;
         $description = $request->description;
         $address = $request->address;
         $latitude = $request->latitude;
         $longitude = $request->longitude;
-
 
         $file = $request->file('profile');
 
@@ -49,14 +46,14 @@ class ShopController extends Controller
         }
 
         $user = User::where('id', $usersID);
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found',
             ], 401);
         }
 
-        $shop = new shop();
+        $shop = new shop;
         $shop->users_id = $usersID;
         $shop->profile = $imagePath ?? 'default.jpg';
         $shop->title = $title;
@@ -74,10 +71,10 @@ class ShopController extends Controller
         ], 200);
     }
 
-    //Api For Get All Shop
+    // Api For Get All Shop
     public function getAllShop()
     {
-        $shops = Shop::all();
+        $shops = shop::all();
 
         if ($shops->isEmpty()) {
             return response()->json([
@@ -92,9 +89,9 @@ class ShopController extends Controller
         ], 200);
     }
 
-    //Api For Get Shop by id
+    // Api For Get Shop by id
     public function getShop(Request $request)
-    {   
+    {
         $validator = Validator::make($request->all(), [
             'shop_id' => 'required',
         ]);
@@ -106,9 +103,9 @@ class ShopController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $shops = Shop::where('id' , $request->shop_id)->first();
+        $shops = shop::where('id', $request->shop_id)->first();
 
-        if (!$shops) {
+        if (! $shops) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No shops found',
