@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApiController\AuthController;
+use App\Http\Controllers\ApiController\NotificationController;
 use App\Http\Controllers\ApiController\ShopController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\ManagementController;
@@ -51,4 +52,10 @@ Route::prefix('job')->group(function () {
 
     // Searching Job
     Route::post('/searching-job', [JobController::class, 'searchingJob']);
+});
+
+// Notifications
+Route::prefix('notifications')->group(function () {
+    Route::post('/get', [NotificationController::class, 'getNotifications']);
+    Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
 });

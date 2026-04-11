@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\OTPCODE;
 use App\Models\User;
 use App\Services\StringHelper;
+use App\Services\userServices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -91,13 +92,14 @@ class AuthController extends Controller
         $user->status = 'active';
         $user->save();
 
+        userServices::generateNotification($user->id, 'Welcome!', 'Welcome to Mobile Maintenance. Your account is now active.');
+
         // $token = $user->createToken('token')->plainTextToken;
 
         return response()->json([
             'status' => 'success',
             'message' => 'OTP verified successfully. Account activated.',
             'data' => $user,
-            // 'token' => $token,
         ], 200);
     }
 

@@ -66,6 +66,8 @@ class ShopController extends Controller
         $shop->status = 'pending';
         $shop->save();
 
+        userServices::generateNotification($usersID, 'Shop Created', 'Your shop '.$title.' has been created successfully and is now pending for approval.');
+
         return response()->json([
             'status' => 'success',
             'message' => 'Shop created successfully',

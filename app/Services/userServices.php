@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\JobListings;
+use App\Models\Notifications;
 use App\Models\shop;
 use Carbon\Carbon;
 
@@ -38,8 +39,20 @@ class userServices
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->having('distance', '<=', $radius)
-            ->orderBy('distance')
             ->where('status', 'active')
+            ->orderBy('distance')
             ->get();
+    }
+
+    public static function generateNotification($user_id, $title, $description)
+    {
+        $notification = new Notifications;
+        $notification->user_id = $user_id;
+        $notification->title = $title;
+        $notification->description = $description;
+        $notification->is_read = false;
+        $notification->save();
+
+        return $notification;
     }
 }
