@@ -20,7 +20,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'registration_type' => 'required',
             'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable',
+            'phone_number' => 'nullable',
             'full_name' => 'nullable',
             'password' => 'required',
         ]);
@@ -41,7 +41,7 @@ class AuthController extends Controller
         $newUser->registration_type = $request->input('registration_type', 'email');
         $newUser->email = $request->email;
         $newUser->full_name = $request->input('full_name', 'null');
-        $newUser->phone_number = $request->input('phone', 'null');
+        $newUser->phone_number = $request->input('phone_number');
         $newUser->password = Hash::make($request->password);
         $newUser->otp_code = $code;
         $newUser->status = 'pending';
@@ -75,7 +75,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user) {
+        if (!$user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found',
@@ -121,7 +121,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => 'error',
                 'message' => $user ? 'Invalid password' : 'Invalid email',
@@ -169,7 +169,7 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)->first();
-        if (! $user) {
+        if (!$user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Email not found',
@@ -180,6 +180,7 @@ class AuthController extends Controller
         $user->otp_code = $otp_code;
         $user->save();
         $name = $user->full_name ?: $user->email;
+
         Mail::to($request->email)->send(new OTPCODE($otp_code, $name));
 
         return response()->json([
@@ -207,7 +208,7 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $request->email)->first();
-        if (! $user) {
+        if (!$user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found',
@@ -244,7 +245,7 @@ class AuthController extends Controller
 
         $user = User::find($request->id);
 
-        if (! Hash::check($request->old_password, $user->password)) {
+        if (!Hash::check($request->old_password, $user->password)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Old password is incorrect',
@@ -264,7 +265,7 @@ class AuthController extends Controller
     {
         $user = User::find($id);
 
-        if (! $user) {
+        if (!$user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found',
