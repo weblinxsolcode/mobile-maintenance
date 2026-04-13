@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JobApplications;
 use App\Models\JobListings;
+use App\Models\Reviews;
 use App\Models\User;
 use App\Services\userServices;
 use Illuminate\Http\Request;
@@ -187,6 +188,110 @@ class JobController extends Controller
             'status' => 'success',
             'message' => 'Job details fetched successfully',
             'item' => $job,
+        ], 200);
+    }
+
+    public function storeReview(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'job_id' => 'required',
+            'rating' => 'required',
+            'review' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $userID = $request->user_id;
+        $jobID = $request->job_id;
+        $rating = $request->rating;
+        $review = $request->review;
+
+        $job = JobListings::find($jobID);
+
+        if (! $job) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Job not found',
+            ], 404);
+        }
+
+        $getAcceptedOffer = JobApplications::where('job_id', $jobID)->where('status', 'accepted')->first();
+
+        if (! $getAcceptedOffer) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No accepted offer found for this job',
+            ], 404);
+        }
+
+        $checkExisting = Reviews::where('job_id', $jobID)->where('user_id', $userID)->first();
+
+        if ($checkExisting) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Review already exists for this job',
+            ], 400);
+        }
+
+        $shopID = $getAcceptedOffer->shop_id;
+
+        $new = new Reviews;
+        $new->user_id = $userID;
+        $new->shop_id = $shopID;
+        $new->job_id = $jobID;
+        $new->rating = $rating;
+        $new->review = $review;
+        $new->save();
+
+        userServices::generateNotification($userID, 'Review Stored', 'Your review for job ID '.$jobID.' has been stored successfully.');
+
+        userServices::sendPushNotifications($userID, 'Review Stored', 'Your review for job ID '.$jobID.' has been stored successfully.');
+
+        $item = JobListings::with('jobApplications', 'userInfo')->find($jobID);
+
+        $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo')->latest()->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Review stored successfully',
+            'item' => $item,
+            'count' => $list->count(),
+            'list' => $list,
+        ], 200);
+    }
+
+    public function getReviews(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'key' => 'required',
+            'value' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $key = $request->key;
+        $value = $request->value;
+
+        $reviews = Reviews::where($key, $value)->latest()->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Reviews fetched successfully',
+            'count' => $reviews->count(),
+            'list' => $reviews,
         ], 200);
     }
 }

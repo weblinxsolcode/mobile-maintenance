@@ -52,7 +52,13 @@ Route::prefix('job')->group(function () {
 
     // Searching Job
     Route::post('/searching-job', [JobController::class, 'searchingJob']);
+
+    // Store Review
+    Route::post('/store-review', [JobController::class, 'storeReview']);
 });
+
+// API for Get Reviews
+Route::post('/get-reviews', [JobController::class, 'getReviews']);
 
 // Notifications
 Route::prefix('notifications')->group(function () {
