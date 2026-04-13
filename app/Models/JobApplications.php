@@ -13,6 +13,15 @@ class JobApplications extends Model
 
     public function shopInfo()
     {
-        return $this->belongsTo(Shop::class, 'shop_id', 'id');
+        return $this->belongsTo(shop::class, 'shop_id', 'id');
+    }
+
+    public function userInfo()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+    public function technicianInfo()
+    {
+        return $this->belongsTo(shop::class, 'technician_id', 'id');
     }
 }
