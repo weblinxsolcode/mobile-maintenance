@@ -20,8 +20,8 @@ return new class extends Migration
             $table->unsignedBigInteger('shop_id');
             $table->foreign('shop_id')->references('id')->on('shops')->onDelete('cascade');
 
-            $table->unsignedBigInteger('technician_id')->nullable();
-            $table->foreign('technician_id')->references('id')->on('shops')->onDelete('cascade');
+            // $table->unsignedBigInteger('technician_id')->nullable();
+            // $table->foreign('technician_id')->references('id')->on('shops')->onDelete('cascade');
 
             $table->unsignedBigInteger('job_id');
             $table->foreign('job_id')->references('id')->on('job_listings')->onDelete('cascade');

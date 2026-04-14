@@ -37,7 +37,7 @@ Route::prefix('shop')->group(function () {
             Route::get('/delete/{id}', [ShopController::class, 'appliedJobsDelete'])->name('shop.appliedJobs.delete');
 
         });
-        // Applied Jobs
+        // Orders Jobs
         Route::prefix('orders')->group(function () {
 
             // Orders List
@@ -52,6 +52,28 @@ Route::prefix('shop')->group(function () {
             // Orders Delete
             Route::get('/delete/{id}', [ShopController::class, 'ordersDelete'])->name('shop.orders.delete');
 
+        });
+
+        // Assigned Jobs
+        Route::prefix('assigned-jobs')->group(function () {
+
+            // Assigned Jobs List
+            Route::get('/list', [ShopController::class, 'assignedJobs'])->name('shop.assignedJobs.index');
+
+            // Assigned Jobs Details
+            Route::get('/details/{id}', [ShopController::class, 'assignedJobsDetails'])->name('shop.assignedJobs.details');
+
+            // Assigned Jobs to Technicians
+            Route::get('/assign/{id}', [ShopController::class, 'assignedJobsCreate'])->name('shop.assignedJobs.assignTechnician');
+
+            // Assigned Jobs to Technicians Store
+            Route::post('/assign/{id}', [ShopController::class, 'assignedJobsStore'])->name('shop.assignedJobs.assignTechnician.store');
+
+            Route::get('assigned-jobs/{id}/reassign', [ShopController::class, 'reassignForm'])->name('shop.assignedJobs.reassign');
+
+            Route::put('assigned-jobs/{id}/reassign', [ShopController::class, 'reassignUpdate'])->name('shop.assignedJobs.reassign.update');
+
+            Route::delete('assigned-jobs/{id}/remove-technician', [ShopController::class, 'removeTechnician'])->name('shop.assignedJobs.removeTechnician');
         });
 
         // Technicians

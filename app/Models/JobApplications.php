@@ -22,6 +22,6 @@ class JobApplications extends Model
     }
     public function technicianInfo()
     {
-        return $this->belongsTo(shop::class, 'technician_id', 'id');
+        return $this->belongsTo(Technicians::class, 'technician_id', 'id');
     }
 }
