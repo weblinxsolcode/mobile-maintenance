@@ -385,4 +385,88 @@ class ShopController extends Controller
             return redirect()->back()->with('error', $th->getMessage());
         }
     }
+
+    public function assignedJobs()
+    {
+        $title = 'Assigned Jobs';
+
+        $shopid = session()->get('shop_id');
+
+        $assignedJobs = JobApplications::where('shop_id', $shopid)
+            ->where('status', 'accepted')
+            ->latest()
+            ->get();
+
+        return view('shop.assigned-jobs.index', compact('title', 'assignedJobs'));
+    }
+
+    public function assignedJobsCreate($id)
+    {
+        $title = 'Assigned Jobs To Technicians';
+
+        $jobApplications = JobApplications::where('shop_id', $id)
+            ->whereNull('technician_id')
+            ->where('status', 'accepted')
+            ->latest()
+            ->get();
+
+        $techniciansList = Technicians::latest()->get();
+
+        return view('shop.assigned-jobs.create', compact('title', 'jobApplications', 'techniciansList', 'id'));
+    }
+
+    public function assignedJobsDetails($id)
+    {
+        $title = 'Assigned Jobs';
+
+        $jobApplications = JobApplications::where('id', $id)->first();
+
+        return view('shop.assigned-jobs.details', compact('title', 'jobApplications'));
+    }
+
+    public function assignedJobsStore(Request $request, $id)
+    {
+        $request->validate([
+            'technician_id' => 'required',
+        ]);
+
+        JobApplications::where('id', $id)->update([
+            'technician_id' => $request->technician_id,
+        ]);
+
+        return redirect()->route('shop.assignedJobs.details', $id)->with('success', 'Job assigned to technician successfully');
+    }
+
+    public function reassignForm($id)
+    {
+        $title = 'Reassign Technician';
+        $jobApplication = JobApplications::with('technicianInfo')->findOrFail($id);
+        $techniciansList = Technicians::latest()->get();
+
+        return view('shop.assigned-jobs.reassign', compact('title', 'jobApplication', 'techniciansList'));
+    }
+
+    public function reassignUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'technician_id' => 'required|exists:technicians,id',
+        ]);
+
+        $jobApplication = JobApplications::findOrFail($id);
+        $jobApplication->technician_id = $request->technician_id;
+        $jobApplication->save();
+
+        return redirect()->route('shop.assignedJobs.details', $id)
+            ->with('success', 'Technician reassigned successfully.');
+    }
+
+    public function removeTechnician($id)
+    {
+        $jobApplication = JobApplications::findOrFail($id);
+        $jobApplication->technician_id = null;
+        $jobApplication->save();
+
+        return redirect()->route('shop.assignedJobs.details', $id)
+            ->with('success', 'Technician removed successfully.');
+    }
 }

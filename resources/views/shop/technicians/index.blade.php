@@ -46,8 +46,8 @@
                                                     <h2 class="table-avatar">
                                                         <a href="javascript:void(0);" class="avatar avatar-sm me-2">
                                                             <img class="avatar-img rounded-circle"
-                                                                src="{{ asset('userImages/' . $item->profile_picture ?: 'common/default.png') }}"
-                                                                onerror="this.onerror=null;this.src='{{ asset('common/default.png') }}';"
+                                                                src="{{ asset('userImages/' . $item->profile_picture ?: 'common/blackicon.png') }}"
+                                                                onerror="this.onerror=null;this.src='{{ asset('common/blackicon.png') }}';"
                                                                 alt="User Image">
                                                         </a>
                                                         <a href="javascript:void(0);">{{ ucfirst($item->full_name ?? 'N/A') }}

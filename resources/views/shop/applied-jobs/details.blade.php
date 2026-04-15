@@ -593,26 +593,6 @@
                 </div>
             </div>
 
-            {{-- Shop / Technician Assigned --}}
-            @if ($appliedJobs->technicianInfo)
-                <div class="jd-card">
-                    <div class="jd-card-header">
-                        <div class="jd-card-icon green">&#128295;</div>
-                        <span class="jd-card-title">Technician Assigned</span>
-                    </div>
-                    <div class="jd-card-body">
-                        <div class="jd-person">
-                            <div class="jd-avatar-initials green">
-                                {{ strtoupper(substr($appliedJobs->technicianInfo->name ?? 'T', 0, 2)) }}
-                            </div>
-                            <div>
-                                <p class="jd-person-name">{{ $appliedJobs->technicianInfo->name ?? 'N/A' }}</p>
-                                <p class="jd-person-sub">{{ $appliedJobs->technicianInfo->email ?? 'N/A' }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endif
 
             {{-- Application Status --}}
             <div class="jd-card">
