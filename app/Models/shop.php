@@ -24,4 +24,11 @@ class shop extends Model
     {
         return $this->hasMany(Reviews::class, 'shop_id');
     }
+
+    public function shopReviews()
+    {
+        return $this->hasMany(Reviews::class, 'shop_id', 'id');
+    }
+
+
 }

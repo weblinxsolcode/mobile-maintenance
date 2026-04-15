@@ -6,6 +6,7 @@ use App\Models\JobApplications;
 use App\Models\JobListings;
 use App\Models\Reviews;
 use App\Models\User;
+use App\Services\FileHelper;
 use App\Services\userServices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -22,6 +23,8 @@ class JobController extends Controller
             'model' => 'required',
             'description' => 'required',
             'service_type' => 'required',
+            'cover_image' => 'nullable',
+
         ]);
 
         if ($validator->fails()) {
@@ -51,6 +54,8 @@ class JobController extends Controller
             ], 404);
         }
 
+        $imagePath = [];
+
         $job = new JobListings;
         $job->code = $jobCode;
         $job->user_id = $userID;
@@ -60,6 +65,11 @@ class JobController extends Controller
         $job->model = $model;
         $job->description = $description;
         $job->service_type = $serviceType;
+        if ($request->hasFile('cover_image')) {
+            $imagePath = FileHelper::uploadImage($request->file('cover_image'), 'jobs');
+            $job->cover_image = $imagePath;
+        }
+
         $job->save();
 
         userServices::generateNotification($userID, 'Job Created', 'Your job '.$jobCode.' has been created successfully.');
@@ -77,7 +87,6 @@ class JobController extends Controller
             'count' => $list->count(),
             'list' => $list,
         ], 200);
-
     }
 
     public function getJobDetails(Request $request)
@@ -311,7 +320,18 @@ class JobController extends Controller
 
         $userID = $request->user_id;
 
-        $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo')->latest()->get();
+        $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo')
+            ->latest()->get();
+
+        // $list = JobListings::where('user_id', $userID)
+        //     ->with([
+        //         'jobApplications.shopInfo' => function ($q) {
+        //             $q->withAvg('reviews', 'rating');
+        //         },
+        //         'userInfo',
+        //     ])
+        //     ->latest()
+        //     ->get();
 
         return response()->json([
             'status' => 'success',
