@@ -44,6 +44,7 @@ class userServices
             ->having('distance', '<=', $radius)
             ->where('status', 'active')
             ->orderBy('distance')
+            ->with('reviews')
             ->get();
     }
 

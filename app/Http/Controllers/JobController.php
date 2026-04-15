@@ -294,4 +294,31 @@ class JobController extends Controller
             'list' => $reviews,
         ], 200);
     }
+
+    public function getUserJobs(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $userID = $request->user_id;
+
+        $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo')->latest()->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Jobs fetched successfully',
+            'count' => $list->count(),
+            'list' => $list,
+        ], 200);
+
+    }
 }

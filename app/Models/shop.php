@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class shop extends Model
 {
-
     protected $table = 'shops';
 
     protected $fillable = [
@@ -18,8 +17,11 @@ class shop extends Model
         'latitude',
         'longitude',
         'description',
-        'profile'
+        'profile',
     ];
 
-
+    public function reviews()
+    {
+        return $this->hasMany(Reviews::class, 'shop_id');
+    }
 }

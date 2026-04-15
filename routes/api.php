@@ -55,6 +55,9 @@ Route::prefix('job')->group(function () {
 
     // Store Review
     Route::post('/store-review', [JobController::class, 'storeReview']);
+
+    // Get Jobs
+    Route::post('/get-list', [JobController::class, 'getUserJobs']);
 });
 
 // API for Get Reviews

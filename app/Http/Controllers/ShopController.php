@@ -25,6 +25,7 @@ class ShopController extends Controller
 
         return view('shop.login', $data);
     }
+
     public function loginCheck(Request $request)
     {
         $request->validate([
@@ -36,11 +37,11 @@ class ShopController extends Controller
 
             $checkExisting = shop::where('email', $request->email)->first();
 
-            if (!$checkExisting) {
+            if (! $checkExisting) {
                 return redirect()->back()->with('error', 'Please enter valid email.');
             }
 
-            if (!Hash::check($request->password, $checkExisting->password)) {
+            if (! Hash::check($request->password, $checkExisting->password)) {
                 return redirect()->back()->with('error', 'Please enter valid password.');
             }
 
@@ -52,12 +53,14 @@ class ShopController extends Controller
             return redirect()->back()->with('error', 'Something went wrong. Please try again later.');
         }
     }
+
     public function logout()
     {
         session()->forget('shop_id');
 
         return redirect()->route('shop.login')->with('success', 'Logout successfully');
     }
+
     public function dashboard()
     {
         $title = 'Shop Dashboard';
@@ -74,6 +77,7 @@ class ShopController extends Controller
 
         return view('shop.dashboard', $data);
     }
+
     public function appliedJobs()
     {
         $title = 'Job Offer';
@@ -86,6 +90,7 @@ class ShopController extends Controller
 
         return view('shop.applied-jobs.index', $data);
     }
+
     public function appliedJobsDetails($id)
     {
         $title = 'Job Offer Details';
@@ -96,6 +101,7 @@ class ShopController extends Controller
 
         return view('shop.applied-jobs.details', $data);
     }
+
     public function appliedJobsStatus(Request $request, $id)
     {
         $request->validate([
@@ -108,12 +114,14 @@ class ShopController extends Controller
 
         return redirect()->back()->with('success', 'Status updated successfully');
     }
+
     public function appliedJobsDelete($id)
     {
         JobApplications::where('id', $id)->delete();
 
         return redirect()->back()->with('success', 'Job deleted successfully');
     }
+
     public function technicians()
     {
         $title = 'Technicians';
@@ -124,6 +132,7 @@ class ShopController extends Controller
 
         return view('shop.technicians.index', $data);
     }
+
     public function techniciansCreate()
     {
         $title = 'Add Technician';
@@ -132,6 +141,7 @@ class ShopController extends Controller
 
         return view('shop.technicians.create', $data);
     }
+
     public function techniciansStore(Request $request)
     {
         $request->validate([
@@ -166,6 +176,7 @@ class ShopController extends Controller
             return redirect()->back()->with('error', 'Something went wrong. Please try again later.');
         }
     }
+
     public function techniciansEdit($id)
     {
         $title = 'Edit Technician';
@@ -176,11 +187,12 @@ class ShopController extends Controller
 
         return view('shop.technicians.edit', $data);
     }
+
     public function techniciansUpdate(Request $request, $id)
     {
         $request->validate([
             'full_name' => 'required',
-            'email' => 'required|email|unique:technicians,email,' . $id,
+            'email' => 'required|email|unique:technicians,email,'.$id,
             'password' => 'nullable',
             'confirm_password' => 'nullable|same:password',
             'phone_number' => 'required',
@@ -193,18 +205,14 @@ class ShopController extends Controller
 
             $filename = $technician->profile_picture;
 
-
             if ($request->hasFile('profile_picture')) {
-
 
                 if ($technician->profile_picture) {
                     FileHelper::deleteFile($technician->profile_picture, 'userImages');
                 }
 
-
                 $filename = FileHelper::uploadFile($request->file('profile_picture'), 'userImages');
             }
-
 
             $password = $technician->password;
             if ($request->filled('password')) {
@@ -229,12 +237,14 @@ class ShopController extends Controller
             return redirect()->back()->with('error', $th->getMessage());
         }
     }
+
     public function techniciansDelete($id)
     {
         Technicians::where('id', $id)->delete();
 
         return redirect()->back()->with('success', 'Technician deleted successfully');
     }
+
     public function orders()
     {
         $title = 'Orders';
@@ -247,6 +257,7 @@ class ShopController extends Controller
 
         return view('shop.orders.index', $data);
     }
+
     public function ordersDetails($id)
     {
         $title = 'Job Offer Details';
@@ -257,6 +268,7 @@ class ShopController extends Controller
 
         return view('shop.orders.details', $data);
     }
+
     public function ordersStatus(Request $request, $id)
     {
         $request->validate([
@@ -269,6 +281,7 @@ class ShopController extends Controller
 
         return redirect()->back()->with('success', 'Status updated successfully');
     }
+
     public function ordersDelete($id)
     {
         JobApplications::where('id', $id)->delete();
@@ -282,13 +295,13 @@ class ShopController extends Controller
 
         $shopid = session()->get('shop_id');
 
-
         $reviewList = Reviews::where('shop_id', $shopid)->latest()->get();
 
         $data = compact('title', 'reviewList');
 
         return view('shop.reviews.index', $data);
     }
+
     public function reviewsDelete($id)
     {
         Reviews::where('id', $id)->delete();
@@ -308,16 +321,16 @@ class ShopController extends Controller
 
         $google_api_key = $setting->google_api_key;
 
-
         $data = compact('title', 'shopInfo', 'google_api_key');
 
         return view('shop.profile.index', $data);
     }
+
     public function profileUpdate(Request $request, $id)
     {
         $request->validate([
             'username' => 'required',
-            'email' => 'required|email|unique:shops,email,' . $id,
+            'email' => 'required|email|unique:shops,email,'.$id,
             'password' => 'required',
             'confirm_password' => 'required|same:password',
             'title' => 'required',
@@ -327,7 +340,6 @@ class ShopController extends Controller
             'description' => 'required',
             'profile' => 'nullable',
         ]);
-
 
         try {
 
@@ -344,12 +356,12 @@ class ShopController extends Controller
                 }
 
                 $file = $request->file('profile');
-                $filename = time() . '.' . $file->getClientOriginalExtension();
+                $filename = time().'.'.$file->getClientOriginalExtension();
 
                 // FIXED PATH
                 $file->move(public_path('shops'), $filename);
 
-                $profileImage = 'shops/' . $filename;
+                $profileImage = 'shops/'.$filename;
             }
 
             // dd($profileImage);
