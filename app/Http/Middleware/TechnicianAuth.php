@@ -15,6 +15,10 @@ class TechnicianAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
-        return $next($request);
+        if (session()->has('technician_id')) {
+            return $next($request);
+        } else {
+            return redirect()->route('technician.login')->with("error", "Please login first.");
+        }
     }
 }

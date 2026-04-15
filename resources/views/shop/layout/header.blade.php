@@ -40,7 +40,7 @@
                   <span class="user-img">
                       <img class="rounded-circle"
                           src="{{ $info && $info->profile ? asset($info->profile) : asset('common/blackicon.png') }}"
-                          width="31" alt="User">
+                          width="31" height="31" alt="User">
                   </span>
               </a>
 
@@ -48,7 +48,7 @@
                   <div class="user-header">
                       <div class="avatar avatar-sm">
                           <img src="{{ $info && $info->profile ? asset($info->profile) : asset('common/blackicon.png') }}"
-                              class="avatar-img rounded-circle" alt="User Image">
+                              class="avatar-img rounded-circle" alt="User Image" style="height: 34px;">
                       </div>
 
                       <div class="user-text">

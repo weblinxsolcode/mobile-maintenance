@@ -13,3 +13,7 @@ Route::get('/', function () {
 // Route For Shop
 include 'shop.php';    
 // Route For Shop
+
+// Route For Technician
+include 'technician.php';
+// Route For Technician

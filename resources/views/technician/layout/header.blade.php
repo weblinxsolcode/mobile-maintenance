@@ -32,33 +32,33 @@
           <!-- User Menu -->
           <li class="nav-item dropdown has-arrow">
               @php
-                  $shopId = session()->get('shop_id');
-                  $info = \App\Models\shop::find($shopId);
+                  $technicianId = session()->get('technician_id');
+                  $info = \App\Models\Technicians::find($technicianId);
               @endphp
 
               <a href="#" class="dropdown-toggle nav-link" data-bs-toggle="dropdown">
                   <span class="user-img">
                       <img class="rounded-circle"
-                          src="{{ $info && $info->profile ? asset($info->profile) : asset('common/blackicon.png') }}"
-                          width="31" alt="User">
+                          src="{{ $info && $info->profile_picture ? asset('userImages/' . $info->profile_picture) : asset('common/blackicon.png') }}"
+                          width="31" height="28" alt="User">
                   </span>
               </a>
 
               <div class="dropdown-menu">
                   <div class="user-header">
                       <div class="avatar avatar-sm">
-                          <img src="{{ $info && $info->profile ? asset($info->profile) : asset('common/blackicon.png') }}"
-                              class="avatar-img rounded-circle" alt="User Image">
+                          <img src="{{ $info && $info->profile_picture ? asset('userImages/' . $info->profile_picture) : asset('common/blackicon.png') }}"
+                              class="avatar-img rounded-circle" alt="User Image" style="height: 34px;">
                       </div>
 
                       <div class="user-text">
-                          <h6>{{ ucfirst($info->username ?? 'N/A') }}</h6>
-                          <p class="text-muted mb-0">Shop Owner</p>
+                          <h6>{{ ucfirst($info->full_name ?? 'N/A') }}</h6>
+                          <p class="text-muted mb-0">Technician</p>
                       </div>
                   </div>
 
-                  <a class="dropdown-item" href="{{ route('shop.profile') }}">My Profile</a>
-                  <a class="dropdown-item" href="{{ route('shop.logout') }}">Logout</a>
+                  <a class="dropdown-item" href="{{ route('technician.profile') }}">My Profile</a>
+                  <a class="dropdown-item" href="{{ route('technician.logout') }}">Logout</a>
               </div>
           </li>
           <!-- /User Menu -->

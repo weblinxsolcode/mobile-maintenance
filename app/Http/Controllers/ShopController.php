@@ -37,11 +37,11 @@ class ShopController extends Controller
 
             $checkExisting = shop::where('email', $request->email)->first();
 
-            if (! $checkExisting) {
+            if (!$checkExisting) {
                 return redirect()->back()->with('error', 'Please enter valid email.');
             }
 
-            if (! Hash::check($request->password, $checkExisting->password)) {
+            if (!Hash::check($request->password, $checkExisting->password)) {
                 return redirect()->back()->with('error', 'Please enter valid password.');
             }
 
@@ -192,7 +192,7 @@ class ShopController extends Controller
     {
         $request->validate([
             'full_name' => 'required',
-            'email' => 'required|email|unique:technicians,email,'.$id,
+            'email' => 'required|email|unique:technicians,email,' . $id,
             'password' => 'nullable',
             'confirm_password' => 'nullable|same:password',
             'phone_number' => 'required',
@@ -330,7 +330,7 @@ class ShopController extends Controller
     {
         $request->validate([
             'username' => 'required',
-            'email' => 'required|email|unique:shops,email,'.$id,
+            'email' => 'required|email|unique:shops,email,' . $id,
             'password' => 'required',
             'confirm_password' => 'required|same:password',
             'title' => 'required',
@@ -356,12 +356,12 @@ class ShopController extends Controller
                 }
 
                 $file = $request->file('profile');
-                $filename = time().'.'.$file->getClientOriginalExtension();
+                $filename = time() . '.' . $file->getClientOriginalExtension();
 
                 // FIXED PATH
                 $file->move(public_path('shops'), $filename);
 
-                $profileImage = 'shops/'.$filename;
+                $profileImage = 'shops/' . $filename;
             }
 
             // dd($profileImage);
@@ -393,9 +393,9 @@ class ShopController extends Controller
         $shopid = session()->get('shop_id');
 
         $assignedJobs = JobApplications::where('shop_id', $shopid)
-            ->where('status', 'accepted')
-            ->latest()
-            ->get();
+        ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup'])
+        ->latest()
+        ->get();
 
         return view('shop.assigned-jobs.index', compact('title', 'assignedJobs'));
     }
@@ -432,6 +432,7 @@ class ShopController extends Controller
 
         JobApplications::where('id', $id)->update([
             'technician_id' => $request->technician_id,
+            'status' => 'under_review',
         ]);
 
         return redirect()->route('shop.assignedJobs.details', $id)->with('success', 'Job assigned to technician successfully');
@@ -454,6 +455,7 @@ class ShopController extends Controller
 
         $jobApplication = JobApplications::findOrFail($id);
         $jobApplication->technician_id = $request->technician_id;
+        $jobApplication->status = 'under_review';
         $jobApplication->save();
 
         return redirect()->route('shop.assignedJobs.details', $id)

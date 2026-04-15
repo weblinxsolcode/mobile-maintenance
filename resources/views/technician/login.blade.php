@@ -56,7 +56,7 @@
                     <div class="login-right">
                         <div class="login-right-wrap">
                             <h1>Login</h1>
-                            <p class="account-subtitle">Access to our dashboard</p>
+                            <p class="account-subtitle">Access to technician dashboard</p>
 
                             <!-- Form -->
                             <form action="{{ route('technician.loginCheck') }}" method="POST">

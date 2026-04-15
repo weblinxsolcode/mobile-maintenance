@@ -98,12 +98,6 @@
                                                             Assigned Jobs
                                                         </a>
 
-                                                        <button class="btn btn-sm bg-danger text-white"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#deleteManagement{{ $item->id }}">
-                                                            <i class="fe fe-trash"></i>
-                                                            Delete
-                                                        </button>
 
                                                     </td>
 

@@ -10,26 +10,16 @@
         <div id="sidebar-menu" class="sidebar-menu">
             <ul>
 
-                <li class="{{ Route::is(['shop.dashboard']) ? 'active' : '' }}">
-                    <a href="{{ route('shop.dashboard') }}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
+                {{-- <li class="{{ Route::is(['technician.dashboard']) ? 'active' : '' }}">
+                    <a href="{{ route('technician.dashboard') }}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
+                </li> --}}
+                
+                <li class="{{ Route::is(['technician.assignedJobs.*']) ? 'active' : '' }}">
+                    <a href="{{ route('technician.assignedJobs.index') }}"><i class="fa fa-tasks"></i> <span>Assigned Job</span></a>
                 </li>
-                <li class="{{ Route::is(['shop.technicians.*']) ? 'active' : '' }}">
-                    <a href="{{ route('shop.technicians.index') }}"><i class="fe fe-users"></i> <span>Technicians</span></a>
-                </li>
-                <li class="{{ Route::is(['shop.appliedJobs.*']) ? 'active' : '' }}">
-                    <a href="{{ route('shop.appliedJobs.index') }}"><i class="fa fa-briefcase"></i> <span>Job Offers</span></a>
-                </li>
-                <li class="{{ Route::is(['shop.orders.*']) ? 'active' : '' }}">
-                    <a href="{{ route('shop.orders.index') }}"><i class="fa fa-box"></i> <span>Orders</span></a>
-                </li>
-                <li class="{{ Route::is(['shop.assignedJobs.*']) ? 'active' : '' }}">
-                    <a href="{{ route('shop.assignedJobs.index') }}"><i class="fa fa-tasks"></i> <span>Assign Job</span></a>
-                </li>
-                <li class="{{ Route::is(['shop.reviews.*']) ? 'active' : '' }}">
-                    <a href="{{ route('shop.reviews.index') }}"><i class="fa fa-star"></i> <span>Reviews</span></a>
-                </li>
-                <li class="{{ Route::is(['shop.profile','shop.profile.update']) ? 'active' : '' }}">
-                    <a href="{{ route('shop.profile') }}"><i class="fa fa-user"></i> <span>Profile</span></a>
+                
+                <li class="{{ Route::is(['technician.profile','technician.profile.update']) ? 'active' : '' }}">
+                    <a href="{{ route('technician.profile') }}"><i class="fa fa-user"></i> <span>Profile</span></a>
                 </li>
 
                 
