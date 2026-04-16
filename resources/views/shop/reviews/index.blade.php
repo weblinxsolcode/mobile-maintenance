@@ -31,7 +31,7 @@
                                             <th>Rating</th>
                                             <th>Review</th>
                                             <th>Date</th>
-                                            <th>Action</th>
+                                            {{-- <th>Action</th> --}}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -107,7 +107,7 @@
                                                 </td>
 
 
-                                                <td>
+                                                {{-- <td>
 
 
 
@@ -118,7 +118,7 @@
                                                         Delete
                                                     </button>
 
-                                                </td>
+                                                </td> --}}
 
                                             </tr>
                                             {{-- Delete Modal --}}
