@@ -9,6 +9,7 @@ use App\Models\shop;
 use App\Models\Technicians;
 use App\Services\FileHelper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 
 class ShopController extends Controller
@@ -435,6 +436,7 @@ class ShopController extends Controller
         JobApplications::where('id', $id)->update([
             'technician_id' => $request->technician_id,
             'status' => 'under_review',
+            'updated_at' => Carbon::now(),
         ]);
 
         return redirect()->route('shop.assignedJobs.details', $id)->with('success', 'Job assigned to technician successfully');
@@ -458,6 +460,7 @@ class ShopController extends Controller
         $jobApplication = JobApplications::findOrFail($id);
         $jobApplication->technician_id = $request->technician_id;
         $jobApplication->status = 'under_review';
+        $jobApplication->updated_at = Carbon::now();
         $jobApplication->save();
 
         return redirect()->route('shop.assignedJobs.details', $id)
@@ -478,6 +481,7 @@ class ShopController extends Controller
     {
         $job = JobApplications::findOrFail($id);
         $job->status = $request->status;
+        $job->updated_at = Carbon::now();
         $job->save();
         return response()->json(['success' => true]);
     }

@@ -5,72 +5,89 @@
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
         /* Base pill style */
-.jd-status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    border-radius: 30px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    line-height: 1.2;
-}
+        .jd-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1.2;
+        }
 
-.jd-status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-}
+        .jd-cover-img {
+            width: 100%;
+            max-height: 280px;
+            object-fit: cover;
+            border-radius: 14px;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2f6;
+        }
 
-/* Status-specific colors */
-.jd-status-pill.pending {
-    background-color: #fff3e0;
-    color: #cc7b00;
-}
-.jd-status-pill.pending .jd-status-dot {
-    background-color: #ffc107;
-}
+        .jd-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
 
-.jd-status-pill.accepted {
-    background-color: #e0f7e8;
-    color: #2b6e3c;
-}
-.jd-status-pill.accepted .jd-status-dot {
-    background-color: #28a745;
-}
+        /* Status-specific colors */
+        .jd-status-pill.pending {
+            background-color: #fff3e0;
+            color: #cc7b00;
+        }
 
-.jd-status-pill.under_review {
-    background-color: #e3f2fd;
-    color: #0d6efd;
-}
-.jd-status-pill.under_review .jd-status-dot {
-    background-color: #0d6efd;
-}
+        .jd-status-pill.pending .jd-status-dot {
+            background-color: #ffc107;
+        }
 
-.jd-status-pill.under_repair {
-    background-color: #fde6e6;
-    color: #dc3545;
-}
-.jd-status-pill.under_repair .jd-status-dot {
-    background-color: #dc3545;
-}
+        .jd-status-pill.accepted {
+            background-color: #e0f7e8;
+            color: #2b6e3c;
+        }
 
-.jd-status-pill.ready_for_pickup {
-    background-color: #e8f0fe;
-    color: #0a58ca;
-}
-.jd-status-pill.ready_for_pickup .jd-status-dot {
-    background-color: #0a58ca;
-}
+        .jd-status-pill.accepted .jd-status-dot {
+            background-color: #28a745;
+        }
 
-.jd-status-pill.delivered {
-    background-color: #e9ecef;
-    color: #495057;
-}
-.jd-status-pill.delivered .jd-status-dot {
-    background-color: #6c757d;
-}
+        .jd-status-pill.under_review {
+            background-color: #e3f2fd;
+            color: #0d6efd;
+        }
+
+        .jd-status-pill.under_review .jd-status-dot {
+            background-color: #0d6efd;
+        }
+
+        .jd-status-pill.under_repair {
+            background-color: #fde6e6;
+            color: #dc3545;
+        }
+
+        .jd-status-pill.under_repair .jd-status-dot {
+            background-color: #dc3545;
+        }
+
+        .jd-status-pill.ready_for_pickup {
+            background-color: #e8f0fe;
+            color: #0a58ca;
+        }
+
+        .jd-status-pill.ready_for_pickup .jd-status-dot {
+            background-color: #0a58ca;
+        }
+
+        .jd-status-pill.delivered {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .jd-status-pill.delivered .jd-status-dot {
+            background-color: #6c757d;
+        }
+
         .jd-wrap * {
             box-sizing: border-box;
         }
@@ -627,6 +644,13 @@
                     <span class="jd-card-title">Job Listing Details</span>
                 </div>
                 <div class="jd-card-body">
+                    {{-- Cover image --}}
+                    @php
+                        $coverImage = $appliedJobs->jobInfo->cover_image ?? null;
+                    @endphp
+                    @if ($coverImage && file_exists(public_path('jobs/' . $coverImage)))
+                        <img class="jd-cover-img" src="{{ asset('jobs/' . $coverImage) }}" alt="Job cover image">
+                    @endif
                     <table class="jd-info-table">
                         <tr>
                             <td class="jd-key">Brand</td>

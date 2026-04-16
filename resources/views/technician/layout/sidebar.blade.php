@@ -20,9 +20,7 @@
                 
                 <li class="{{ Route::is(['technician.profile','technician.profile.update']) ? 'active' : '' }}">
                     <a href="{{ route('technician.profile') }}"><i class="fa fa-user"></i> <span>Profile</span></a>
-                </li>
-
-                
+                </li>  
             </ul>
         </div>
     </div>

@@ -6,6 +6,7 @@ use App\Models\JobApplications;
 use App\Models\Technicians;
 use App\Services\FileHelper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 
 class TechnicianController extends Controller
@@ -89,6 +90,7 @@ class TechnicianController extends Controller
         ]);
 
         $jobApp->status = $request->repair_status;
+        $jobApp->updated_at = Carbon::now();
         $jobApp->save();
 
         if ($request->ajax()) {

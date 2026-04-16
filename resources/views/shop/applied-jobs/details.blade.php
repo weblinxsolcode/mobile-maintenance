@@ -285,6 +285,17 @@
             padding: 1.25rem 1.5rem;
         }
 
+        /* Cover image style */
+        .jd-cover-img {
+            width: 100%;
+            max-height: 280px;
+            object-fit: cover;
+            border-radius: 14px;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f6;
+        }
+
         /* Person row */
         .jd-person {
             display: flex;
@@ -551,13 +562,23 @@
                 </div>
             </div>
 
-            {{-- Job Listing Details --}}
+            {{-- Job Listing Details (with cover image) --}}
             <div class="jd-card">
                 <div class="jd-card-header">
                     <div class="jd-card-icon purple">&#128295;</div>
                     <span class="jd-card-title">Job Listing Details</span>
                 </div>
                 <div class="jd-card-body">
+                    {{-- Cover image --}}
+                    @php
+                        $coverImage = $appliedJobs->jobInfo->cover_image ?? null;
+                    @endphp
+                    @if($coverImage && file_exists(public_path('jobs/' . $coverImage)))
+                        <img class="jd-cover-img" 
+                             src="{{ asset('jobs/' . $coverImage) }}" 
+                             alt="Job cover image">
+                    @endif
+
                     <table class="jd-info-table">
                         <tr>
                             <td class="jd-key">Brand</td>
@@ -570,21 +591,13 @@
                         <tr>
                             <td class="jd-key">Code</td>
                             <td class="jd-val" style="font-family:'DM Mono',monospace;font-size:13px;">
-                                {{ $appliedJobs->jobInfo->code ?? 'N/A' }}</td>
+                                {{ $appliedJobs->jobInfo->code ?? 'N/A' }}
+                            </td>
                         </tr>
                         <tr>
                             <td class="jd-key">Service Type</td>
                             <td class="jd-val">{{ $appliedJobs->jobInfo->service_type ?? 'N/A' }}</td>
                         </tr>
-                        {{-- <tr>
-                            <td class="jd-key">Listing Status</td>
-                            <td class="jd-val">
-                                @php $js = $appliedJobs->jobInfo->status ?? 'pending'; @endphp
-                                <span class="jd-badge {{ $js == 'pending' ? 'pending' : 'success' }}">
-                                    {{ ucfirst($js) }}
-                                </span>
-                            </td>
-                        </tr> --}}
                     </table>
 
                     <div class="jd-desc">
@@ -592,7 +605,6 @@
                     </div>
                 </div>
             </div>
-
 
             {{-- Application Status --}}
             <div class="jd-card">
