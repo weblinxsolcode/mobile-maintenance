@@ -489,12 +489,12 @@
                         <!-- Pending Offers -->
                         <div class="db-stat-card db-card-secondary">
                             <div class="db-stat-top">
-                                <div class="db-stat-icon"><i class="fe fe-clock"></i></div>
+                                <div class="db-stat-icon"><i class="fa fa-briefcase"></i></div>
                                 <span class="db-stat-chip">Total</span>
                             </div>
-                            <div class="db-stat-number">{{ $totalJobOffersPending }}</div>
-                            <div class="db-stat-label">Pending Offers</div>
-                            <div class="db-stat-watermark">{{ $totalJobOffersPending }}</div>
+                            <div class="db-stat-number">{{ $totalJob }}</div>
+                            <div class="db-stat-label">Jobs</div>
+                            <div class="db-stat-watermark">{{ $totalJob }}</div>
                             <div class="db-stat-bar">
                                 <div class="db-stat-bar-fill" style="width:58%"></div>
                             </div>
@@ -503,12 +503,12 @@
                         <!-- Accepted Offers -->
                         <div class="db-stat-card db-card-tertiary">
                             <div class="db-stat-top">
-                                <div class="db-stat-icon"><i class="fe fe-check-circle"></i></div>
+                                <div class="db-stat-icon"><i class="fa-solid fa-bag-shopping"></i></div>
                                 <span class="db-stat-chip">Total</span>
                             </div>
-                            <div class="db-stat-number">{{ $totalJobOffersAccepted }}</div>
-                            <div class="db-stat-label">Accepted Offers</div>
-                            <div class="db-stat-watermark">{{ $totalJobOffersAccepted }}</div>
+                            <div class="db-stat-number">{{ $totalOrder }}</div>
+                            <div class="db-stat-label">Orders</div>
+                            <div class="db-stat-watermark">{{ $totalOrder }}</div>
                             <div class="db-stat-bar">
                                 <div class="db-stat-bar-fill" style="width:44%"></div>
                             </div>

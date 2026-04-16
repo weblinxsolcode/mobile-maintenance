@@ -43,15 +43,14 @@
                             </h5>
                             <h5 class="card-title mt-2">
                                 Status:
-                                <span id="jobStatusBadge" 
+                                <span id="jobStatusBadge"
                                     class="badge 
-                                    @if($jobApplications->status == 'under_review') bg-warning text-dark
+                                    @if ($jobApplications->status == 'under_review') bg-warning text-dark
                                     @elseif($jobApplications->status == 'accepted') bg-info text-dark
                                     @elseif($jobApplications->status == 'under_repair') bg-primary
                                     @elseif($jobApplications->status == 'ready_for_pickup') bg-success
-                                    @elseif($jobApplications->status == 'delivered') bg-secondary
-                                    @endif
-                                    px-3 py-2 rounded-pill fw-semibold" 
+                                    @elseif($jobApplications->status == 'delivered') bg-secondary @endif
+                                    px-3 py-2 rounded-pill fw-semibold"
                                     style="font-size: 0.85rem;">
                                     {{ ucfirst(str_replace('_', ' ', $jobApplications->status ?? 'N/A')) }}
                                 </span>
@@ -68,7 +67,7 @@
                             </h4>
                             @if ($jobApplications->technicianInfo)
                                 <a href="{{ route('shop.assignedJobs.reassign', $jobApplications->id) }}"
-                                    class="btn btn-warning btn-rounded mt-2 mt-sm-0">
+                                    class="btn btn-warning btn-rounded mt-2 mt-sm-0"id="reassignBtn">
                                     <i class="fa-solid fa-user-pen"></i>
                                     Reassign Technician
                                 </a>
@@ -152,48 +151,54 @@
                                     </div>
 
                                     <div class="col-md-3 text-md-end mt-4 mt-md-0">
-                                        <button class="btn btn-danger btn-rounded w-100 w-md-auto delete-technician"
+                                        <button class="btn btn-danger btn-rounded w-100 w-md-auto delete-technician justify-content-center align-items-center" 
                                             data-id="{{ $jobApplications->technicianInfo->id ?? '' }}"
-                                            data-job="{{ $jobApplications->id }}">
-                                            <i class="fe fe-trash"></i> Remove Assignment
+                                            data-job="{{ $jobApplications->id }}" id="removeAssignmentBtn">
+                                            <i class="fe fe-trash me-2"></i> Remove Assignment
                                         </button>
-                                        <p class="text-muted small mt-2 mb-0">
+                                        {{-- <p class="text-muted small mt-2 mb-0">
                                             <i class="fe fe-info"></i> Removing will unassign this technician
-                                        </p>
+                                        </p> --}}
                                     </div>
                                 </div>
 
                                 <!-- ================= STATUS UPDATE SECTION (Only shown when technician assigned) ================= -->
-                                <hr class="my-4">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h5 class="mb-3">
-                                            <i class="fa fa-sliders me-2"></i> Update Job Status
-                                        </h5>
-                                        <div class="row g-3 align-items-end">
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold">Change Status</label>
-                                                <select id="statusSelect" class="form-select">
-                                                    <option value="under_review" {{ $jobApplications->status == 'under_review' ? 'selected' : '' }}>🔍 Under Review</option>
-                                                   
-                                                    <option value="under_repair" {{ $jobApplications->status == 'under_repair' ? 'selected' : '' }}>🔧 Under Repair</option>
-                                                    <option value="ready_for_pickup" {{ $jobApplications->status == 'ready_for_pickup' ? 'selected' : '' }}>📦 Ready for Pickup</option>
-                                                    <option value="delivered" {{ $jobApplications->status == 'delivered' ? 'selected' : '' }}>🚚 Delivered</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <button id="updateStatusBtn" class="btn btn-primary w-100">
-                                                    <i class="fa fa-edit me-1"></i> Update Status
-                                                </button>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div id="statusUpdateMessage"></div>
+                                <div id="statusSection">
+                                    @if ($jobApplications->status != 'delivered')
+                                        <hr class="my-4">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <h5 class="mb-3">
+                                                    <i class="fa fa-sliders me-2"></i> Update Job Status
+                                                </h5>
+
+                                                <div class="row g-3 align-items-end">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-semibold">Change Status</label>
+                                                        <select id="statusSelect" class="form-select">
+                                                            <option value="under_review">🔍 Under Review</option>
+                                                            <option value="under_repair">🔧 Under Repair</option>
+                                                            <option value="ready_for_pickup">📦 Ready for Pickup</option>
+                                                            <option value="delivered">🚚 Delivered</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="col-md-3">
+                                                        <button id="updateStatusBtn" class="btn btn-primary w-100">
+                                                            <i class="fa fa-edit me-1"></i> Update Status
+                                                        </button>
+                                                    </div>
+
+                                                    <div class="col-md-3">
+                                                        <div id="statusUpdateMessage"></div>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                         </div>
-                                    </div>
+                                    @endif
                                 </div>
                                 <!-- ================= END STATUS UPDATE SECTION ================= -->
-
                             @else
                                 <!-- Empty State: No Technician Assigned -->
                                 <div class="text-center py-5">
@@ -244,100 +249,154 @@
             </div>
         </div>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Remove technician logic
+
+            // Function to toggle visibility of reassign/remove buttons based on status
+            function toggleActionButtons(status) {
+                const reassignBtn = document.getElementById('reassignBtn');
+                const removeBtn = document.getElementById('removeAssignmentBtn');
+                const isDelivered = (status === 'delivered');
+
+                if (reassignBtn) {
+                    reassignBtn.style.display = isDelivered ? 'none' : 'flex'; // or 'block' based on layout
+                }
+                if (removeBtn) {
+                    removeBtn.style.display = isDelivered ? 'none' : 'flex';
+                }
+            }
+
+            // On page load, get current status from the badge or from a data attribute
+            const currentStatus = '{{ $jobApplications->status }}';
+            toggleActionButtons(currentStatus);
+
+            // ================= REMOVE TECHNICIAN =================
             const deleteButtons = document.querySelectorAll('.delete-technician');
-            const modal = new bootstrap.Modal(document.getElementById('removeTechnicianModal'));
+            const modal = document.getElementById('removeTechnicianModal');
+            const bootstrapModal = modal ? new bootstrap.Modal(modal) : null;
             const removeForm = document.getElementById('removeTechnicianForm');
-    
+
             deleteButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
+
                     const jobId = this.getAttribute('data-job');
-                    const actionUrl = "{{ route('shop.assignedJobs.removeTechnician', ':id') }}".replace(':id', jobId);
+
+                    const actionUrl = "{{ route('shop.assignedJobs.removeTechnician', ':id') }}"
+                        .replace(':id', jobId);
+
                     removeForm.action = actionUrl;
-                    modal.show();
+                    bootstrapModal.show();
                 });
             });
 
-            // ========== STATUS UPDATE AJAX ==========
+            // ================= STATUS UPDATE =================
             const updateBtn = document.getElementById('updateStatusBtn');
             const statusSelect = document.getElementById('statusSelect');
             const statusBadge = document.getElementById('jobStatusBadge');
             const messageDiv = document.getElementById('statusUpdateMessage');
+            const statusSection = document.getElementById('statusSection');
 
             if (updateBtn) {
-                updateBtn.addEventListener('click', function() {
-                    const newStatus = statusSelect.value;
-                    const jobId = {{ $jobApplications->id }};
 
-                    // Disable button to prevent double submission
+                updateBtn.addEventListener('click', function() {
+
+                    const newStatus = statusSelect.value;
+
+                    // disable button
                     updateBtn.disabled = true;
                     updateBtn.innerHTML = '<i class="fe fe-loader fa-spin me-1"></i> Updating...';
                     messageDiv.innerHTML = '';
 
                     fetch("{{ route('shop.assignedJobs.updateStatus', $jobApplications->id) }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({ status: newStatus })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Update badge appearance and text
-                            let badgeClass = '';
-                            let badgeText = newStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                            switch (newStatus) {
-                                case 'under_review':
-                                    badgeClass = 'bg-warning text-dark';
-                                    break;
-                                case 'under_repair':
-                                    badgeClass = 'bg-primary';
-                                    break;
-                                case 'ready_for_pickup':
-                                    badgeClass = 'bg-success';
-                                    break;
-                                case 'delivered':
-                                    badgeClass = 'bg-secondary';
-                                    break;
-                                default:
-                                    badgeClass = 'bg-secondary';
-                            }
-                            statusBadge.className = `badge ${badgeClass} px-3 py-2 rounded-pill fw-semibold`;
-                            statusBadge.textContent = badgeText;
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({
+                                status: newStatus
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
 
-                            // Show success message
-                            messageDiv.innerHTML = `<div class="alert alert-success alert-dismissible fade show mb-0 py-2">
-                                <i class="fe fe-check-circle me-1"></i> Status updated successfully!
-                                <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>`;
-                            // Auto hide after 3 seconds
-                            setTimeout(() => {
-                                const alert = messageDiv.querySelector('.alert');
-                                if (alert) alert.remove();
-                            }, 3000);
-                        } else {
-                            throw new Error(data.message || 'Update failed');
-                        }
-                    })
-                    .catch(error => {
-                        messageDiv.innerHTML = `<div class="alert alert-danger alert-dismissible fade show mb-0 py-2">
-                            <i class="fe fe-alert-circle me-1"></i> ${error.message}
-                            <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>`;
-                    })
-                    .finally(() => {
-                        updateBtn.disabled = false;
-                        updateBtn.innerHTML = '<i class="fe fe-refresh-ccw me-1"></i> Update Status';
-                    });
+                            if (data.success) {
+
+                                // ================= BADGE UPDATE =================
+                                let badgeClass = '';
+                                let badgeText = newStatus
+                                    .replace(/_/g, ' ')
+                                    .replace(/\b\w/g, l => l.toUpperCase());
+
+                                switch (newStatus) {
+                                    case 'under_review':
+                                        badgeClass = 'bg-warning text-dark';
+                                        break;
+                                    case 'under_repair':
+                                        badgeClass = 'bg-primary';
+                                        break;
+                                    case 'ready_for_pickup':
+                                        badgeClass = 'bg-success';
+                                        break;
+                                    case 'delivered':
+                                        badgeClass = 'bg-secondary';
+                                        break;
+                                    default:
+                                        badgeClass = 'bg-secondary';
+                                }
+
+                                if (statusBadge) {
+                                    statusBadge.className =
+                                        `badge ${badgeClass} px-3 py-2 rounded-pill fw-semibold`;
+                                    statusBadge.textContent = badgeText;
+                                }
+
+                                // ================= HIDE SECTION IF DELIVERED =================
+                                if (newStatus === 'delivered') {
+        if (statusSection) statusSection.style.display = 'none';
+        toggleActionButtons('delivered');   // Hide reassign & remove buttons
+    }
+
+                                // ================= SUCCESS MESSAGE =================
+                                messageDiv.innerHTML = `
+                                <div class="alert alert-success alert-dismissible fade show mb-0 py-2">
+                                    <i class="fe fe-check-circle me-1"></i> Status updated successfully!
+                                    <button type="button" class="btn-close p-2" data-bs-dismiss="alert"></button>
+                                </div>
+                            `;
+
+                                setTimeout(() => {
+                                    const alert = messageDiv.querySelector('.alert');
+                                    if (alert) alert.remove();
+                                }, 3000);
+
+                            } else {
+                                throw new Error(data.message || 'Update failed');
+                            }
+
+                        })
+                        .catch(error => {
+
+                            messageDiv.innerHTML = `
+                            <div class="alert alert-danger alert-dismissible fade show mb-0 py-2">
+                                <i class="fe fe-alert-circle me-1"></i> ${error.message}
+                                <button type="button" class="btn-close p-2" data-bs-dismiss="alert"></button>
+                            </div>
+                        `;
+
+                        })
+                        .finally(() => {
+                            updateBtn.disabled = false;
+                            updateBtn.innerHTML =
+                            '<i class="fe fe-refresh-ccw me-1"></i> Update Status';
+                        });
+
                 });
+
             }
+
         });
     </script>
 @endsection

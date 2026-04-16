@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class JobApplications extends Model
 {
+    protected $fillable = ['job_id', 'shop_id', 'user_id', 'technician_id', 'description', 'status', 'created_at', 'updated_at', 'price', 'time', 'warranty', 'warranty_months'];
     public function jobInfo()
     {
         return $this->belongsTo(JobListings::class, 'job_id', 'id');

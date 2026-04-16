@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\JobApplications;
+use App\Models\JobListings;
 use App\Models\Reviews;
 use App\Models\Settings;
 use App\Models\shop;
@@ -68,24 +69,23 @@ class ShopController extends Controller
 
         $totalTechnicians = Technicians::count();
 
-        $totalJobOffersPending = JobApplications::where('shop_id', session()->get('shop_id'))->where('status', 'pending')->count();
+        $totalJob = JobListings::count();
 
-        $totalJobOffersAccepted = JobApplications::where('shop_id', session()->get('shop_id'))->where('status', 'accepted')->count();
+        $totalOrder = JobApplications::where('shop_id', session()->get('shop_id'))->whereIn('status', ["accepted", "under_review", "under_repair", "ready_for_pickup", "delivered"])->count();
+
 
         $totalReviews = Reviews::where('shop_id', session()->get('shop_id'))->count();
 
-        $data = compact('title', 'totalTechnicians', 'totalJobOffersPending', 'totalJobOffersAccepted', 'totalReviews');
+        $data = compact('title', 'totalTechnicians', 'totalJob', 'totalOrder', 'totalReviews');
 
         return view('shop.dashboard', $data);
     }
 
     public function appliedJobs()
     {
-        $title = 'Job Offer';
+        $title = 'Job Listings';
 
-        $shopid = session()->get('shop_id');
-
-        $appliedJobs = JobApplications::where('shop_id', $shopid)->where('status', 'pending')->latest()->get();
+        $appliedJobs = JobListings::latest()->get();
 
         $data = compact('title', 'appliedJobs');
 
@@ -94,11 +94,13 @@ class ShopController extends Controller
 
     public function appliedJobsDetails($id)
     {
-        $title = 'Job Offer Details';
+        $title = 'Job Listings Details';
 
-        $appliedJobs = JobApplications::where('id', $id)->first();
+        $shopid = session()->get('shop_id');
 
-        $data = compact('title', 'appliedJobs');
+        $appliedJobs = JobListings::where('id', $id)->first();
+
+        $data = compact('title', 'appliedJobs', 'shopid');
 
         return view('shop.applied-jobs.details', $data);
     }
@@ -118,11 +120,61 @@ class ShopController extends Controller
 
     public function appliedJobsDelete($id)
     {
-        JobApplications::where('id', $id)->delete();
+        JobListings::where('id', $id)->delete();
 
         return redirect()->back()->with('success', 'Job deleted successfully');
     }
+    public function submitOffer(Request $request, $id)
+    {
+        $request->validate([
+            "price" => "required",
+            "time" => "required",
+            'warranty' => 'required|in:0,1',
+            'warranty_months' => 'required_if:warranty,1',
+            "description" => "required",
+        ]);
 
+
+        try {
+            JobApplications::create([
+                "user_id" => $request->user_id,
+                "shop_id" => session()->get('shop_id'),
+                "job_id" => $id,
+                "technician_id" => null,
+                "status" => "pending",
+                "price" => $request->price,
+                "time" => $request->time,
+                "warranty" => $request->warranty,
+                "warranty_months" => $request->warranty_months,
+                "description" => $request->description,
+            ]);
+
+            return redirect()->back()->with('success', 'Offer submitted successfully');
+
+        } catch (\Throwable $th) {
+            return redirect()->back()->with([
+                'error' => 'Something went wrong. Please try again later.'
+            ]);
+        }
+    }
+    public function submitOfferUpdate(Request $request, $offerId)
+    {
+        $offer = JobApplications::where('id', $offerId)
+            ->where('shop_id', session()->get('shop_id'))
+            ->firstOrFail();
+
+        $request->validate([
+            'price' => 'required|numeric',
+            'time' => 'required|integer',
+            'warranty' => 'required|in:0,1',
+            'warranty_months' => 'required_if:warranty,1|nullable',
+            'description' => 'required',
+        ]);
+
+        $offer->update($request->only(['price', 'time', 'warranty', 'warranty_months', 'description']));
+
+        return redirect()->back()->with('success', 'Offer updated successfully');
+    }
     public function technicians()
     {
         $title = 'Technicians';
@@ -253,7 +305,7 @@ class ShopController extends Controller
         $shopid = session()->get('shop_id');
 
 
-        $appliedJobs = JobApplications::where('shop_id', $shopid)->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup','delivered'])->latest()->get();
+        $appliedJobs = JobApplications::where('shop_id', $shopid)->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])->latest()->get();
 
 
         $data = compact('title', 'appliedJobs');
@@ -391,12 +443,12 @@ class ShopController extends Controller
 
     public function assignedJobs()
     {
-        $title = 'Assigned Jobs';
+        $title = 'Assigned Technicians';
 
         $shopid = session()->get('shop_id');
 
         $assignedJobs = JobApplications::where('shop_id', $shopid)
-            ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup','delivered'])
+            ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])
             ->latest()
             ->get();
 
@@ -409,7 +461,7 @@ class ShopController extends Controller
 
         $jobApplications = JobApplications::where('shop_id', $id)
             ->whereNull('technician_id')
-            ->whereIn('status', 'accepted')
+            ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])
             ->latest()
             ->get();
 
@@ -460,7 +512,6 @@ class ShopController extends Controller
         $jobApplication = JobApplications::findOrFail($id);
         $jobApplication->technician_id = $request->technician_id;
         $jobApplication->status = 'under_review';
-        $jobApplication->updated_at = Carbon::now();
         $jobApplication->save();
 
         return redirect()->route('shop.assignedJobs.details', $id)
@@ -481,7 +532,9 @@ class ShopController extends Controller
     {
         $job = JobApplications::findOrFail($id);
         $job->status = $request->status;
-        $job->updated_at = Carbon::now();
+        if ($job->status == 'delivered') {
+            $job->updated_at = Carbon::now();
+        }
         $job->save();
         return response()->json(['success' => true]);
     }

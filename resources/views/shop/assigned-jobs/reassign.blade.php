@@ -71,7 +71,7 @@
                                     <i class="fe fe-users me-1"></i> New Technician
                                 </label>
                                 <select name="technician_id" id="technician_id" class="form-select form-select-lg py-2" required>
-                                    <option value="">-- Select Technician --</option>
+                                    <option value="" selected disabled>-- Select Technician --</option>
                                     @foreach ($techniciansList as $item)
                                         @php
                                             $profileImage = asset('userImages/' . ($item->profile_picture ?: 'common/blackicon.png'));

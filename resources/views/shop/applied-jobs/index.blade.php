@@ -42,9 +42,7 @@
                                                     <th>#</th>
                                                     <th>User Info</th>
                                                     <th>Job Info</th>
-                                                    <th>Price</th>
-                                                    <th>Time</th>
-                                                    <th>Status</th>
+                                                    <th>Description</th>
                                                     <th>Date</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -53,21 +51,22 @@
                                                 @foreach ($appliedJobs as $item)
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
+                                                        
 
 
                                                         <td>
                                                             <h2 class="table-avatar">
                                                                 <a href="javascript:void(0);" class="avatar avatar-sm me-2">
                                                                     <img class="avatar-img rounded-circle"
-                                                                        src="{{ asset('userImages/' . ($item->userInfo->profile_picture ?? 'common/blackicon.png')) }}"
+                                                                        src="{{ asset('userImages/' . ($item->profile_picture ?? 'common/blackicon.png')) }}"
                                                                         onerror="this.onerror=null;this.src='{{ asset('common/blackicon.png') }}';"
                                                                         alt="User Image">
                                                                 </a>
                                                                 <a href="javascript:void(0);" class="d-block">
-                                                                    {{ ucfirst($item->userInfo->full_name ?? 'N/A') }}
+                                                                    {{ ucfirst($item->full_name ?? 'N/A') }}
                                                                     <br>
                                                                     <small class="text-muted">
-                                                                        {{ $item->userInfo->email ?? 'N/A' }}
+                                                                        {{ $item->phone_number ?? 'N/A' }}
                                                                     </small>
                                                                 </a>
                                                             </h2>
@@ -78,17 +77,17 @@
 
                                                                 <div>
                                                                     <a href="javascript:void(0);" class="d-block fw-bold">
-                                                                        {{ $item->jobInfo->brand ?? 'N/A' }} -
-                                                                        {{ $item->jobInfo->model ?? 'N/A' }}
+                                                                        {{ $item->brand ?? 'N/A' }} -
+                                                                        {{ $item->model ?? 'N/A' }}
                                                                     </a>
 
                                                                     <small class="text-muted d-block">
-                                                                        Code: {{ $item->jobInfo->code ?? 'N/A' }}
+                                                                        Code: {{ $item->code ?? 'N/A' }}
                                                                     </small>
 
                                                                     <small class="text-muted d-block">
                                                                         Service:
-                                                                        {{ $item->jobInfo->service_type ?? 'N/A' }}
+                                                                        {{ $item->service_type ?? 'N/A' }}
                                                                     </small>
 
 
@@ -96,25 +95,8 @@
                                                             </h2>
                                                         </td>
                                                         <td>
-                                                            {{ env('APP_CURRENCY') }}{{ $item->price ?? 'N/A' }}
+                                                            {{ ucfirst(Str::limit($item->description ?? 'N/A', 50)) }}
                                                         </td>
-                                                        <td>
-                                                            <span class="fw-bold">Time</span> : {{ $item->time ?? 'N/A' }}
-                                                            hrs <br>
-                                                            @if ($item->warranty == 1)
-                                                                <span class="fw-bold">Warranty Months</span> :
-                                                                {{ $item->warranty_months ?? 'N/A' }}
-                                                            @else
-                                                                <span class="fw-bold">Warranty</span> : No
-                                                            @endif
-                                                        </td>
-                                                        <td>
-                                                            <span
-                                                                class="badge bg-{{ $item->status == 'pending' ? 'warning' : 'success' }}">
-                                                                {{ ucfirst($item->status ?? 'N/A') }}
-                                                            </span>
-                                                        </td>
-
                                                         <td>
                                                             {{ \Carbon\Carbon::parse($item->created_at)->format('d-m-Y') }}
                                                         </td>
@@ -122,14 +104,7 @@
 
 
                                                         <td class="text-end">
-                                                            @if ($item->status !== 'accepted')
-                                                                <button class="btn btn-sm bg-secondary text-white"
-                                                                    data-bs-toggle="modal"
-                                                                    data-bs-target="#updateStatus{{ $item->id }}">
-                                                                    <i class="fa-solid fa-toggle-on"></i>
-                                                                    Update Status
-                                                                </button>
-                                                            @endif
+                                                           
                                                             <a class="btn btn-sm bg-success text-white"
                                                                 href="{{ route('shop.appliedJobs.details', $item->id) }}">
                                                                 <i class="fe fe-eye"></i>

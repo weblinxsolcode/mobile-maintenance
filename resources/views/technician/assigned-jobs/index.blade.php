@@ -94,12 +94,15 @@
                             </div>
 
                             <div class="card-footer bg-transparent">
-                                <!-- Button to trigger modal -->
-                                <button type="button" class="btn btn-primary btn-sm w-100 update-status-btn"
-                                    data-job-id="{{ $job->id }}" data-current-status="{{ $job->repair_status ?? $job->status }}"
-                                    data-bs-toggle="modal" data-bs-target="#statusUpdateModal">
-                                    <i class="fe fe-edit me-1"></i> Update Status
-                                </button>
+                                @if ($job->status != 'delivered')
+                                    <!-- Button to trigger modal -->
+                                    <button type="button" class="btn btn-primary btn-sm w-100 update-status-btn"
+                                        data-job-id="{{ $job->id }}"
+                                        data-current-status="{{ $job->repair_status ?? $job->status }}"
+                                        data-bs-toggle="modal" data-bs-target="#statusUpdateModal">
+                                        <i class="fe fe-edit me-1"></i> Update Status
+                                    </button>
+                                @endif
                                 <div class="mt-2 text-end">
                                     <small class="text-muted">Assigned on:
                                         {{ \Carbon\Carbon::parse($job->updated_at)->format('d M Y') }}</small>
@@ -123,7 +126,8 @@
     </div>
 
     <!-- Status Update Modal -->
-    <div class="modal fade" id="statusUpdateModal" tabindex="-1" aria-labelledby="statusUpdateModalLabel" aria-hidden="true">
+    <div class="modal fade" id="statusUpdateModal" tabindex="-1" aria-labelledby="statusUpdateModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -171,10 +175,12 @@
 
                 // Disable button to prevent double submission
                 let confirmBtn = $(this);
-                confirmBtn.prop('disabled', true).html('<i class="fe fe-loader fa-spin me-1"></i> Updating...');
+                confirmBtn.prop('disabled', true).html(
+                    '<i class="fe fe-loader fa-spin me-1"></i> Updating...');
 
                 $.ajax({
-                    url: "{{ route('technician.assignedJobs.updateStatus', ':id') }}".replace(':id', jobId),
+                    url: "{{ route('technician.assignedJobs.updateStatus', ':id') }}".replace(
+                        ':id', jobId),
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
@@ -187,10 +193,10 @@
                             let badge = $(`.update-status-btn[data-job-id="${jobId}"]`)
                                 .closest('.card')
                                 .find('.badge.rounded-pill');
-                            
+
                             let label = newStatus.replaceAll('_', ' ')
                                 .replace(/\b\w/g, l => l.toUpperCase());
-                            
+
                             badge
                                 .removeClass('bg-warning bg-info bg-primary bg-success')
                                 .addClass(
@@ -200,13 +206,14 @@
                                     'bg-success'
                                 )
                                 .text(label);
-                            
+
                             // Also update the data-current-status attribute on the button
-                            $(`.update-status-btn[data-job-id="${jobId}"]`).data('current-status', newStatus);
-                            
+                            $(`.update-status-btn[data-job-id="${jobId}"]`).data(
+                                'current-status', newStatus);
+
                             toastr.options.positionClass = 'toast-bottom-right';
                             toastr.success('Status updated to ' + label);
-                            
+
                             // Close modal
                             $('#statusUpdateModal').modal('hide');
                         } else {

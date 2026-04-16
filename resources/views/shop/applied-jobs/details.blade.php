@@ -292,7 +292,7 @@
             object-fit: cover;
             border-radius: 14px;
             margin-bottom: 1.25rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             border: 1px solid #eef2f6;
         }
 
@@ -484,61 +484,44 @@
         }
     </style>
 
-<div class="page-wrapper">
-    <div class="content container-fluid">
+    <div class="page-wrapper">
+        <div class="content container-fluid">
 
             {{-- Back --}}
             <a href="{{ route('shop.appliedJobs.index') }}" class="jd-back">
-                <i class="fe fe-arrow-left"></i> Back to Applied Jobs
+                <i class="fe fe-arrow-left"></i> Back to Jobs Listing
             </a>
 
             {{-- Hero --}}
-            <div class="jd-hero">
-                <div class="jd-hero-code">Job Code &nbsp;/&nbsp; {{ strtoupper($appliedJobs->jobInfo->code ?? 'N/A') }}</div>
-                <h1 class="jd-hero-title">
-                    {{ $appliedJobs->jobInfo->brand ?? 'N/A' }} &mdash; {{ $appliedJobs->jobInfo->model ?? 'N/A' }}
-                </h1>
-                <p class="jd-hero-service">{{ $appliedJobs->jobInfo->service_type ?? 'N/A' }}</p>
-                <div class="jd-hero-bottom">
-                    <span class="jd-hero-date">
-                        Submitted {{ \Carbon\Carbon::parse($appliedJobs->created_at)->format('d M Y') }}
-                        &nbsp;&bull;&nbsp; App #{{ $appliedJobs->id }}
-                    </span>
-                    @php $s = $appliedJobs->status ?? 'pending'; @endphp
-                    <span class="jd-status-pill {{ $s }}">
-                        <span class="jd-status-dot"></span>
-                        {{ ucfirst($s) }}
-                    </span>
+            <div class="jd-hero d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="jd-hero-code">Job Code &nbsp;/&nbsp; {{ strtoupper($appliedJobs->code ?? 'N/A') }}</div>
+                    <h1 class="jd-hero-title">
+                        {{ $appliedJobs->brand ?? 'N/A' }} &mdash; {{ $appliedJobs->model ?? 'N/A' }}
+                    </h1>
+                    <p class="jd-hero-service">{{ $appliedJobs->service_type ?? 'N/A' }}</p>
+                </div>
+                @php
+                $existingOffer = $appliedJobs->jobApplications
+                    ->where('shop_id', session()->get('shop_id'))
+                    ->first();
+                @endphp
+                <div style="z-index: 999999999999999999999999">
+                    @if ($existingOffer)
+                        <button class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#editOfferModal{{ $appliedJobs->id }}">
+                            <i class="fe fe-edit"></i> Edit Offer
+                        </button>
+                    @else
+                        <button class="btn btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#submitOfferModal{{ $appliedJobs->id }}">
+                            <i class="fe fe-edit"></i> Submit Offer
+                        </button>
+                    @endif
                 </div>
             </div>
 
-            {{-- Stats --}}
-            <div class="jd-stats">
-                <div class="jd-stat-card price">
-                    <div class="jd-stat-label">Quoted Price</div>
-                    <div class="jd-stat-value">{{ env('APP_CURRENCY') }}{{ $appliedJobs->price ?? '—' }}</div>
-                </div>
-                <div class="jd-stat-card time">
-                    <div class="jd-stat-label">Estimated Time</div>
-                    <div class="jd-stat-value">{{ $appliedJobs->time ?? '—' }}<span
-                            style="font-size:14px;font-weight:400;color:#64748b;"> hrs</span></div>
-                </div>
-            </div>
 
-            {{-- Warranty --}}
-            <div class="jd-warranty">
-                @if ($appliedJobs->warranty)
-                    <span class="jd-warranty-badge yes">
-                        <span class="jd-warranty-icon">&#10003;</span>
-                        {{ $appliedJobs->warranty_months }} Month Warranty Included
-                    </span>
-                @else
-                    <span class="jd-warranty-badge no">
-                        <span class="jd-warranty-icon">&#8212;</span>
-                        No Warranty
-                    </span>
-                @endif
-            </div>
 
             {{-- Customer Info --}}
             <div class="jd-card">
@@ -549,13 +532,12 @@
                 <div class="jd-card-body">
                     <div class="jd-person">
                         <img class="jd-avatar"
-                            src="{{ asset('userImages/' . ($appliedJobs->userInfo->profile_picture ?? 'common/blackicon.png')) }}"
+                            src="{{ asset('userImages/' . ($appliedJobs->profile_picture ?? 'common/blackicon.png')) }}"
                             onerror="this.onerror=null;this.src='{{ asset('common/blackicon.png') }}';" alt="Customer">
                         <div>
-                            <p class="jd-person-name">{{ ucfirst($appliedJobs->userInfo->full_name ?? 'N/A') }}</p>
-                            <p class="jd-person-sub">{{ $appliedJobs->userInfo->email ?? 'N/A' }}</p>
-                            @if (!empty($appliedJobs->userInfo->phone))
-                                <p class="jd-person-sub">{{ $appliedJobs->userInfo->phone }}</p>
+                            <p class="jd-person-name">{{ ucfirst($appliedJobs->full_name ?? 'N/A') }}</p>
+                            @if (!empty($appliedJobs->phone_number))
+                                <p class="jd-person-sub">{{ $appliedJobs->phone_number }}</p>
                             @endif
                         </div>
                     </div>
@@ -571,76 +553,79 @@
                 <div class="jd-card-body">
                     {{-- Cover image --}}
                     @php
-                        $coverImage = $appliedJobs->jobInfo->cover_image ?? null;
+                        $coverImage = $appliedJobs->cover_image ?? null;
                     @endphp
-                    @if($coverImage && file_exists(public_path('jobs/' . $coverImage)))
-                        <img class="jd-cover-img" 
-                             src="{{ asset('jobs/' . $coverImage) }}" 
-                             alt="Job cover image">
+                    @if ($coverImage && file_exists(public_path('jobs/' . $coverImage)))
+                        <img class="jd-cover-img" src="{{ asset('jobs/' . $coverImage) }}" alt="Job cover image">
                     @endif
 
                     <table class="jd-info-table">
                         <tr>
                             <td class="jd-key">Brand</td>
-                            <td class="jd-val">{{ $appliedJobs->jobInfo->brand ?? 'N/A' }}</td>
+                            <td class="jd-val">{{ $appliedJobs->brand ?? 'N/A' }}</td>
                         </tr>
                         <tr>
                             <td class="jd-key">Model</td>
-                            <td class="jd-val">{{ $appliedJobs->jobInfo->model ?? 'N/A' }}</td>
+                            <td class="jd-val">{{ $appliedJobs->model ?? 'N/A' }}</td>
                         </tr>
                         <tr>
                             <td class="jd-key">Code</td>
                             <td class="jd-val" style="font-family:'DM Mono',monospace;font-size:13px;">
-                                {{ $appliedJobs->jobInfo->code ?? 'N/A' }}
+                                {{ $appliedJobs->code ?? 'N/A' }}
                             </td>
                         </tr>
                         <tr>
                             <td class="jd-key">Service Type</td>
-                            <td class="jd-val">{{ $appliedJobs->jobInfo->service_type ?? 'N/A' }}</td>
+                            <td class="jd-val">{{ $appliedJobs->service_type ?? 'N/A' }}</td>
                         </tr>
                     </table>
 
                     <div class="jd-desc">
-                        {{ $appliedJobs->jobInfo->description ?? 'No description provided.' }}
+                        {{ $appliedJobs->description ?? 'No description provided.' }}
                     </div>
                 </div>
             </div>
+            {{-- Existing Offer Details --}}
+            @if ($existingOffer)
+                <div class="jd-card ">
+                    <div class="jd-card-header">
+                        <div class="jd-card-icon green">💰</div>
+                        <span class="jd-card-title">Your Offer Details</span>
+                    </div>
+                    <div class="jd-card-body">
+                        <table class="jd-info-table">
+                            <tr>
+                                <td class="jd-key">Price</td>
+                                <td class="jd-val">${{ number_format($existingOffer->price, 2) }}</td>
+                            </tr>
+                            <tr>
+                                <td class="jd-key">Time</td>
+                                <td class="jd-val">{{ $existingOffer->time }} hour(s)</td>
+                            </tr>
+                            <tr>
+                                <td class="jd-key">Warranty</td>
+                                <td class="jd-val">
+                                    @if ($existingOffer->warranty == 1)
+                                        Yes ({{ $existingOffer->warranty_months ?? 0 }} months)
+                                    @else
+                                        No
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="jd-key">Description</td>
+                                <td class="jd-val">{{ $existingOffer->description ?? 'N/A' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            @endif
 
-            {{-- Application Status --}}
-            <div class="jd-card">
-                <div class="jd-card-header">
-                    <div class="jd-card-icon amber">&#128336;</div>
-                    <span class="jd-card-title">Application Status</span>
-                </div>
-                <div class="jd-card-body">
-                    <div class="jd-timeline">
-                        <div class="jd-tl-item">
-                            <span class="jd-tl-dot blue"></span>
-                            <span class="jd-tl-label">Current Status</span>
-                            @php $appStatus = $appliedJobs->status ?? 'pending'; @endphp
-                            <span>
-                                <span
-                                    class="jd-badge {{ $appStatus == 'pending' ? 'pending' : ($appStatus == 'approved' ? 'success' : 'danger') }}">
-                                    {{ ucfirst($appStatus) }}
-                                </span>
-                            </span>
-                        </div>
-                        <div class="jd-tl-item">
-                            <span class="jd-tl-dot blue"></span>
-                            <span class="jd-tl-label">Applied On</span>
-                            <span
-                                class="jd-tl-value">{{ \Carbon\Carbon::parse($appliedJobs->created_at)->format('d M Y') }}</span>
-                        </div>
-                        <div class="jd-tl-item">
-                            <span class="jd-tl-dot gray"></span>
-                            <span class="jd-tl-label">Last Updated</span>
-                            <span
-                                class="jd-tl-value">{{ \Carbon\Carbon::parse($appliedJobs->updated_at)->format('d M Y') }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
         </div>
     </div>
+
+    {{-- Submit Offer Modal --}}
+    @include('shop.applied-jobs.submitOfferModal')
 @endsection

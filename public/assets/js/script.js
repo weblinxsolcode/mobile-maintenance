@@ -116,7 +116,7 @@ Version      : 1.3
 
     if ($('.datatable').length > 0) {
         $('.datatable').DataTable({
-            "bFilter": false,
+            "bFilter": true,
         });
     }
 	

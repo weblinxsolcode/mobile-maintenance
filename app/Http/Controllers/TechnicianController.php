@@ -90,7 +90,9 @@ class TechnicianController extends Controller
         ]);
 
         $jobApp->status = $request->repair_status;
-        $jobApp->updated_at = Carbon::now();
+        if ($jobApp->status == 'delivered') {
+            $jobApp->updated_at = Carbon::now();
+        }
         $jobApp->save();
 
         if ($request->ajax()) {

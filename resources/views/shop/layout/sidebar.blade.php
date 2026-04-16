@@ -17,13 +17,13 @@
                     <a href="{{ route('shop.technicians.index') }}"><i class="fe fe-users"></i> <span>Technicians</span></a>
                 </li>
                 <li class="{{ Route::is(['shop.appliedJobs.*']) ? 'active' : '' }}">
-                    <a href="{{ route('shop.appliedJobs.index') }}"><i class="fa fa-briefcase"></i> <span>Job Offers</span></a>
+                    <a href="{{ route('shop.appliedJobs.index') }}"><i class="fa fa-briefcase"></i> <span>Job Listings</span></a>
                 </li>
                 <li class="{{ Route::is(['shop.orders.*']) ? 'active' : '' }}">
                     <a href="{{ route('shop.orders.index') }}"><i class="fa fa-box"></i> <span>Orders</span></a>
                 </li>
                 <li class="{{ Route::is(['shop.assignedJobs.*']) ? 'active' : '' }}">
-                    <a href="{{ route('shop.assignedJobs.index') }}"><i class="fa fa-tasks"></i> <span>Assign Job</span></a>
+                    <a href="{{ route('shop.assignedJobs.index') }}"><i class="fa fa-tasks"></i> <span>Assign Technicians</span></a>
                 </li>
                 <li class="{{ Route::is(['shop.reviews.*']) ? 'active' : '' }}">
                     <a href="{{ route('shop.reviews.index') }}"><i class="fa fa-star"></i> <span>Reviews</span></a>
