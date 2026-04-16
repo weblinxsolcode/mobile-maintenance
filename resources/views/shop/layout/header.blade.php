@@ -1,5 +1,5 @@
   <!-- Header -->
-  <div class="header">
+  <div class="header" >
 
       <!-- Logo -->
       <div class="header-left">

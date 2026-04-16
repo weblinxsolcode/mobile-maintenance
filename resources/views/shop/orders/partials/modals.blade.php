@@ -14,7 +14,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <a href="{{ route('shop.appliedJobs.delete', $item->id) }}" class="btn btn-danger">
+                    <a href="{{ route('shop.orders.delete', $item->id) }}" class="btn btn-danger">
                         Yes, Delete
                     </a>
                 </div>

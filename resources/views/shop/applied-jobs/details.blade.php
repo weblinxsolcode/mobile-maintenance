@@ -4,10 +4,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-        .jd-wrap * {
-            box-sizing: border-box;
-        }
-
         .jd-wrap {
             font-family: 'DM Sans', sans-serif;
             background: #f0f4f9;
@@ -49,7 +45,7 @@
             color: #fff;
         }
 
-        .jd-hero::before {
+        /* .jd-hero::before {
             content: '';
             position: absolute;
             top: -60px;
@@ -58,7 +54,7 @@
             height: 220px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.06);
-        }
+        } */
 
         .jd-hero::after {
             content: '';
@@ -482,10 +478,60 @@
                 font-size: 20px;
             }
         }
+
+        /* Price History Table */
+        .jd-price-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .jd-price-history-table thead th {
+            text-align: left;
+            padding: 1rem 1.5rem;
+            background-color: #fafbfd;
+            border-bottom: 1px solid #e8edf4;
+            font-weight: 600;
+            color: #1e293b;
+            letter-spacing: 0.03em;
+        }
+
+        .jd-price-history-table tbody td {
+            padding: 0.9rem 1.5rem;
+            border-bottom: 1px solid #f0f2f5;
+            color: #0f172a;
+            font-weight: 500;
+        }
+
+        .jd-price-history-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .jd-price-history-table .old-price {
+            color: #64748b;
+            /* text-decoration: line-through; */
+            font-weight: 400;
+        }
+
+        .jd-price-history-table .new-price {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        .jd-price-history-table .mod-date {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .jd-price-history-table .changed-by {
+            color: #26ACE8;
+            font-weight: 500;
+        }
     </style>
 
-    <div class="page-wrapper">
-        <div class="content container-fluid">
+    <div class="page-wrapper pb-2">
+        <div class="content container-fluid ">
 
             {{-- Back --}}
             <a href="{{ route('shop.appliedJobs.index') }}" class="jd-back">
@@ -502,11 +548,11 @@
                     <p class="jd-hero-service">{{ $appliedJobs->service_type ?? 'N/A' }}</p>
                 </div>
                 @php
-                $existingOffer = $appliedJobs->jobApplications
-                    ->where('shop_id', session()->get('shop_id'))
-                    ->first();
+                    $existingOffer = $appliedJobs->jobApplications
+                        ->where('shop_id', session()->get('shop_id'))
+                        ->first();
                 @endphp
-                <div style="z-index: 999999999999999999999999">
+                <div >
                     @if ($existingOffer)
                         <button class="btn btn-primary" data-bs-toggle="modal"
                             data-bs-target="#editOfferModal{{ $appliedJobs->id }}">
@@ -586,6 +632,7 @@
                 </div>
             </div>
             {{-- Existing Offer Details --}}
+
             @if ($existingOffer)
                 <div class="jd-card ">
                     <div class="jd-card-header">
@@ -621,6 +668,40 @@
                 </div>
             @endif
 
+            {{-- Existing Offer Details --}}
+            @if ($existingOffer && $existingOffer->priceHistories->count())
+                <div class="jd-card">
+                    <div class="jd-card-header">
+                        <div class="jd-card-icon amber">📊</div>
+                        <span class="jd-card-title">Price Modification History</span>
+                    </div>
+                    <div class="jd-card-body p-0">
+                        <div class="table-responsive">
+                            <table class="jd-price-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Old Price</th>
+                                        <th>New Price</th>
+                                        <th>Modified On</th>
+                                        <th>Changed By</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($existingOffer->priceHistories as $history)
+                                        <tr>
+                                            <td class="old-price">${{ number_format($history->old_price, 2) }}</td>
+                                            <td class="new-price">${{ number_format($history->new_price, 2) }}</td>
+                                            <td class="mod-date">{{ $history->created_at->format('M d, Y \a\t h:i A') }}
+                                            </td>
+                                            <td class="changed-by">{{ $history->changedByShop->name ?? 'Shop' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
 
         </div>

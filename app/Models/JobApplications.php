@@ -26,4 +26,8 @@ class JobApplications extends Model
     {
         return $this->belongsTo(Technicians::class, 'technician_id', 'id');
     }
+    public function priceHistories()
+{
+    return $this->hasMany(price_histories::class, 'job_application_id');
+}
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JobApplications;
 use App\Models\JobListings;
+use App\Models\price_histories;
 use App\Models\Reviews;
 use App\Models\Settings;
 use App\Models\shop;
@@ -157,23 +158,39 @@ class ShopController extends Controller
             ]);
         }
     }
+
     public function submitOfferUpdate(Request $request, $offerId)
     {
-        $offer = JobApplications::where('id', $offerId)
-            ->where('shop_id', session()->get('shop_id'))
-            ->firstOrFail();
+        $offer = JobApplications::findOrFail($offerId);
+        // Authorize that this shop owns the offer
+        if ($offer->shop_id != session()->get('shop_id')) {
+            abort(403);
+        }
 
-        $request->validate([
-            'price' => 'required|numeric',
-            'time' => 'required|integer',
-            'warranty' => 'required|in:0,1',
-            'warranty_months' => 'required_if:warranty,1|nullable',
-            'description' => 'required',
+        $oldPrice = $offer->price;
+        $newPrice = $request->price;
+
+        // Update offer fields
+        $offer->update([
+            'price' => $newPrice,
+            'time' => $request->time,
+            'warranty' => $request->warranty,
+            'warranty_months' => $request->warranty_months,
+            'description' => $request->description,
         ]);
 
-        $offer->update($request->only(['price', 'time', 'warranty', 'warranty_months', 'description']));
+        // If price has changed, store history
+        if ($oldPrice != $newPrice) {
+            price_histories::create([
+                'job_application_id' => $offer->id,
+                'old_price' => $oldPrice,
+                'new_price' => $newPrice,
+                'changed_by' => session()->get('shop_id'), // assuming shop relation exists
+            ]);
+        }
 
-        return redirect()->back()->with('success', 'Offer updated successfully');
+
+        return redirect()->back()->with('success', 'Offer updated successfully.');
     }
     public function technicians()
     {
