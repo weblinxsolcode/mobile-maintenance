@@ -4,6 +4,73 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
+        /* Base pill style */
+.jd-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.jd-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Status-specific colors */
+.jd-status-pill.pending {
+    background-color: #fff3e0;
+    color: #cc7b00;
+}
+.jd-status-pill.pending .jd-status-dot {
+    background-color: #ffc107;
+}
+
+.jd-status-pill.accepted {
+    background-color: #e0f7e8;
+    color: #2b6e3c;
+}
+.jd-status-pill.accepted .jd-status-dot {
+    background-color: #28a745;
+}
+
+.jd-status-pill.under_review {
+    background-color: #e3f2fd;
+    color: #0d6efd;
+}
+.jd-status-pill.under_review .jd-status-dot {
+    background-color: #0d6efd;
+}
+
+.jd-status-pill.under_repair {
+    background-color: #fde6e6;
+    color: #dc3545;
+}
+.jd-status-pill.under_repair .jd-status-dot {
+    background-color: #dc3545;
+}
+
+.jd-status-pill.ready_for_pickup {
+    background-color: #e8f0fe;
+    color: #0a58ca;
+}
+.jd-status-pill.ready_for_pickup .jd-status-dot {
+    background-color: #0a58ca;
+}
+
+.jd-status-pill.delivered {
+    background-color: #e9ecef;
+    color: #495057;
+}
+.jd-status-pill.delivered .jd-status-dot {
+    background-color: #6c757d;
+}
         .jd-wrap * {
             box-sizing: border-box;
         }
@@ -473,8 +540,8 @@
         }
     </style>
 
-<div class="page-wrapper">
-    <div class="content container-fluid">
+    <div class="page-wrapper">
+        <div class="content container-fluid">
 
             {{-- Back --}}
             <a href="{{ route('shop.appliedJobs.index') }}" class="jd-back">
@@ -493,10 +560,12 @@
                         Submitted {{ \Carbon\Carbon::parse($appliedJobs->created_at)->format('d M Y') }}
                         &nbsp;&bull;&nbsp; App #{{ $appliedJobs->id }}
                     </span>
-                    @php $s = $appliedJobs->status ?? 'pending'; @endphp
-                    <span class="jd-status-pill {{ $s }}">
+                    @php
+                        $statusValue = $appliedJobs->status ?? 'pending';
+                    @endphp
+                    <span class="jd-status-pill {{ $statusValue }}">
                         <span class="jd-status-dot"></span>
-                        {{ ucfirst($s) }}
+                        {{ ucfirst(str_replace('_', ' ', $statusValue)) }}
                     </span>
                 </div>
             </div>

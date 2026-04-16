@@ -32,7 +32,7 @@
                                     <i class="fa fa-briefcase me-2"></i>
                                     Job {{ $job->jobInfo->code ?? $job->id }}
                                 </h5>
-                                <span
+                                <span id="job-status-badge-{{ $job->id }}"
                                     class="badge rounded-pill 
                                 @if ($job->status == 'under_review') bg-warning 
                                 @elseif($job->status == 'under_repair') bg-info 
@@ -55,8 +55,6 @@
                                                 {{ $job->shopInfo->address ?? 'Address not provided' }}
                                             </small>
                                             <div class="mt-1">
-                                                {{-- <small><i class="fe fe-phone"></i> {{ $job->shopInfo->phone ?? 'N/A' }}</small> --}}
-                                                {{-- &nbsp;|&nbsp; --}}
                                                 <small><i class="fe fe-mail"></i>
                                                     {{ $job->shopInfo->email ?? 'N/A' }}</small>
                                             </div>
@@ -96,21 +94,12 @@
                             </div>
 
                             <div class="card-footer bg-transparent">
-                                <label class="form-label fw-semibold mb-1">Change Status</label>
-                                <select class="form-select form-select-sm status-update" data-job-id="{{ $job->id }}">
-                                    <option value="" selected disabled>Selected Status</option>
-                                    <option value="under_review"
-                                        {{ $job->repair_status == 'under_review' ? 'selected' : '' }}>🔍 Under Review
-                                    </option>
-                                    <option value="under_repair"
-                                        {{ $job->repair_status == 'under_repair' ? 'selected' : '' }}>🔧 Under Repair
-                                    </option>
-                                    <option value="ready_for_pickup"
-                                        {{ $job->repair_status == 'ready_for_pickup' ? 'selected' : '' }}>📦 Ready For
-                                        Pickup</option>
-                                    <option value="delivered" {{ $job->repair_status == 'delivered' ? 'selected' : '' }}>✅
-                                        Delivered</option>
-                                </select>
+                                <!-- Button to trigger modal -->
+                                <button type="button" class="btn btn-primary btn-sm w-100 update-status-btn"
+                                    data-job-id="{{ $job->id }}" data-current-status="{{ $job->repair_status ?? $job->status }}"
+                                    data-bs-toggle="modal" data-bs-target="#statusUpdateModal">
+                                    <i class="fe fe-edit me-1"></i> Update Status
+                                </button>
                                 <div class="mt-2 text-end">
                                     <small class="text-muted">Assigned on:
                                         {{ \Carbon\Carbon::parse($job->updated_at)->format('d M Y') }}</small>
@@ -132,38 +121,76 @@
             </div>
         </div>
     </div>
+
+    <!-- Status Update Modal -->
+    <div class="modal fade" id="statusUpdateModal" tabindex="-1" aria-labelledby="statusUpdateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="statusUpdateModalLabel">Update Job Status</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="modal_job_id">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Select New Status</label>
+                        <select id="modal_status_select" class="form-select">
+                            <option value="under_review">🔍 Under Review</option>
+                            <option value="under_repair">🔧 Under Repair</option>
+                            <option value="ready_for_pickup">📦 Ready For Pickup</option>
+                            <option value="delivered">✅ Delivered</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmStatusUpdate">Update Status</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         $(document).ready(function() {
+            let currentJobId = null;
 
-            $('.status-update').on('change', function() {
+            // When "Update Status" button is clicked, populate modal with current status
+            $('.update-status-btn').on('click', function() {
+                currentJobId = $(this).data('job-id');
+                let currentStatus = $(this).data('current-status');
+                $('#modal_job_id').val(currentJobId);
+                $('#modal_status_select').val(currentStatus);
+            });
 
-                let select = $(this);
-                let jobId = select.data('job-id');
-                let newStatus = select.val();
+            // Handle confirm update
+            $('#confirmStatusUpdate').on('click', function() {
+                let jobId = $('#modal_job_id').val();
+                let newStatus = $('#modal_status_select').val();
+
+                if (!jobId || !newStatus) return;
+
+                // Disable button to prevent double submission
+                let confirmBtn = $(this);
+                confirmBtn.prop('disabled', true).html('<i class="fe fe-loader fa-spin me-1"></i> Updating...');
 
                 $.ajax({
-                    url: "{{ route('technician.assignedJobs.updateStatus', ':id') }}".replace(
-                        ':id', jobId),
+                    url: "{{ route('technician.assignedJobs.updateStatus', ':id') }}".replace(':id', jobId),
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
                         _method: "PUT",
                         repair_status: newStatus
                     },
-
-                    beforeSend: function() {
-                        select.prop('disabled', true);
-                    },
-
                     success: function(response) {
-
                         if (response.success) {
-
-                            let badge = select.closest('.card').find('.badge.rounded-pill');
-
+                            // Update the badge in the corresponding card
+                            let badge = $(`.update-status-btn[data-job-id="${jobId}"]`)
+                                .closest('.card')
+                                .find('.badge.rounded-pill');
+                            
                             let label = newStatus.replaceAll('_', ' ')
                                 .replace(/\b\w/g, l => l.toUpperCase());
-
+                            
                             badge
                                 .removeClass('bg-warning bg-info bg-primary bg-success')
                                 .addClass(
@@ -173,22 +200,35 @@
                                     'bg-success'
                                 )
                                 .text(label);
-                                toastr.options.positionClass = 'toast-bottom-right';
-                                toastr.success('Status updated to ' + label);
+                            
+                            // Also update the data-current-status attribute on the button
+                            $(`.update-status-btn[data-job-id="${jobId}"]`).data('current-status', newStatus);
+                            
+                            toastr.options.positionClass = 'toast-bottom-right';
+                            toastr.success('Status updated to ' + label);
+                            
+                            // Close modal
+                            $('#statusUpdateModal').modal('hide');
+                        } else {
+                            toastr.error(response.message || 'Something went wrong');
                         }
                     },
-
-                    error: function() {
-                        console.log('error');
+                    error: function(xhr) {
+                        let errorMsg = xhr.responseJSON?.message || 'Failed to update status';
+                        toastr.error(errorMsg);
                     },
-
                     complete: function() {
-                        select.prop('disabled', false);
+                        confirmBtn.prop('disabled', false).html('Update Status');
                     }
                 });
-
             });
 
+            // Reset modal when closed
+            $('#statusUpdateModal').on('hidden.bs.modal', function() {
+                $('#modal_job_id').val('');
+                $('#modal_status_select').val('');
+                $('#confirmStatusUpdate').prop('disabled', false).html('Update Status');
+            });
         });
     </script>
 @endsection

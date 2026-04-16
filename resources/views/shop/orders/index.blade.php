@@ -96,10 +96,21 @@
                                                         @endif
                                                     </td>
                                                     <td>
-                                                        <span
-                                                            class="badge bg-{{ $item->status == 'pending' ? 'warning' : 'success' }}">
-                                                            {{ ucfirst($item->status ?? 'N/A') }}
-                                                        </span>
+                                                        @php
+                                                        $statusColors = [
+                                                            'pending'         => 'warning',
+                                                            'accepted'        => 'success',
+                                                            'under_review'    => 'info',
+                                                            'under_repair'    => 'primary',
+                                                            'ready_for_pickup'=> 'secondary',
+                                                            'delivered'       => 'dark',
+                                                        ];
+                                                        $badgeColor = $statusColors[$item->status] ?? 'secondary';
+                                                    @endphp
+                                                    
+                                                    <span class="badge bg-{{ $badgeColor }}">
+                                                        {{ ucfirst(str_replace('_', ' ', $item->status ?? 'N/A')) }}
+                                                    </span>
                                                     </td>
 
                                                     <td>
@@ -109,7 +120,7 @@
 
 
                                                     <td class="text-end">
-                                                        @if ($item->status !== 'accepted')
+                                                        @if (!in_array($item->status, ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered']))
                                                             <button class="btn btn-sm bg-secondary text-white"
                                                                 data-bs-toggle="modal"
                                                                 data-bs-target="#updateStatus{{ $item->id }}">

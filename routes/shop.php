@@ -74,6 +74,8 @@ Route::prefix('shop')->group(function () {
             Route::put('assigned-jobs/{id}/reassign', [ShopController::class, 'reassignUpdate'])->name('shop.assignedJobs.reassign.update');
 
             Route::delete('assigned-jobs/{id}/remove-technician', [ShopController::class, 'removeTechnician'])->name('shop.assignedJobs.removeTechnician');
+
+            Route::post('/assigned-jobs/{id}/update-status', [ShopController::class, 'updateStatus'])->name('shop.assignedJobs.updateStatus');
         });
 
         // Technicians

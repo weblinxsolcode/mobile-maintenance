@@ -25,7 +25,6 @@ class JobListings extends Model
     {
         return $this->belongsTo(shop::class, 'shop_id', 'id');
     }
-
     public function shop() {
         return $this->belongsTo(shop::class); 
     }

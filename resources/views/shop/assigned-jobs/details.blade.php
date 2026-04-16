@@ -41,6 +41,21 @@
                                     </u>
                                 </span>
                             </h5>
+                            <h5 class="card-title mt-2">
+                                Status:
+                                <span id="jobStatusBadge" 
+                                    class="badge 
+                                    @if($jobApplications->status == 'under_review') bg-warning text-dark
+                                    @elseif($jobApplications->status == 'accepted') bg-info text-dark
+                                    @elseif($jobApplications->status == 'under_repair') bg-primary
+                                    @elseif($jobApplications->status == 'ready_for_pickup') bg-success
+                                    @elseif($jobApplications->status == 'delivered') bg-secondary
+                                    @endif
+                                    px-3 py-2 rounded-pill fw-semibold" 
+                                    style="font-size: 0.85rem;">
+                                    {{ ucfirst(str_replace('_', ' ', $jobApplications->status ?? 'N/A')) }}
+                                </span>
+                            </h5>
                         </div>
                     </div>
 
@@ -48,7 +63,7 @@
                     <div class="card customShadow">
                         <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
                             <h4 class="card-title mb-0">
-                                <i class="fe fe-user-check me-2"></i>
+                                <i class="fa fa-user-check me-2"></i>
                                 Technician Assignment
                             </h4>
                             @if ($jobApplications->technicianInfo)
@@ -147,6 +162,38 @@
                                         </p>
                                     </div>
                                 </div>
+
+                                <!-- ================= STATUS UPDATE SECTION (Only shown when technician assigned) ================= -->
+                                <hr class="my-4">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h5 class="mb-3">
+                                            <i class="fa fa-sliders me-2"></i> Update Job Status
+                                        </h5>
+                                        <div class="row g-3 align-items-end">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">Change Status</label>
+                                                <select id="statusSelect" class="form-select">
+                                                    <option value="under_review" {{ $jobApplications->status == 'under_review' ? 'selected' : '' }}>🔍 Under Review</option>
+                                                   
+                                                    <option value="under_repair" {{ $jobApplications->status == 'under_repair' ? 'selected' : '' }}>🔧 Under Repair</option>
+                                                    <option value="ready_for_pickup" {{ $jobApplications->status == 'ready_for_pickup' ? 'selected' : '' }}>📦 Ready for Pickup</option>
+                                                    <option value="delivered" {{ $jobApplications->status == 'delivered' ? 'selected' : '' }}>🚚 Delivered</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <button id="updateStatusBtn" class="btn btn-primary w-100">
+                                                    <i class="fa fa-edit me-1"></i> Update Status
+                                                </button>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div id="statusUpdateMessage"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- ================= END STATUS UPDATE SECTION ================= -->
+
                             @else
                                 <!-- Empty State: No Technician Assigned -->
                                 <div class="text-center py-5">
@@ -167,6 +214,7 @@
             </div>
         </div>
     </div>
+
     <!-- Remove Assignment Confirmation Modal -->
     <div class="modal fade" id="removeTechnicianModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -196,8 +244,10 @@
             </div>
         </div>
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Remove technician logic
             const deleteButtons = document.querySelectorAll('.delete-technician');
             const modal = new bootstrap.Modal(document.getElementById('removeTechnicianModal'));
             const removeForm = document.getElementById('removeTechnicianForm');
@@ -206,12 +256,88 @@
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
                     const jobId = this.getAttribute('data-job');
-                    // Build the route for removing technician assignment
                     const actionUrl = "{{ route('shop.assignedJobs.removeTechnician', ':id') }}".replace(':id', jobId);
                     removeForm.action = actionUrl;
                     modal.show();
                 });
             });
+
+            // ========== STATUS UPDATE AJAX ==========
+            const updateBtn = document.getElementById('updateStatusBtn');
+            const statusSelect = document.getElementById('statusSelect');
+            const statusBadge = document.getElementById('jobStatusBadge');
+            const messageDiv = document.getElementById('statusUpdateMessage');
+
+            if (updateBtn) {
+                updateBtn.addEventListener('click', function() {
+                    const newStatus = statusSelect.value;
+                    const jobId = {{ $jobApplications->id }};
+
+                    // Disable button to prevent double submission
+                    updateBtn.disabled = true;
+                    updateBtn.innerHTML = '<i class="fe fe-loader fa-spin me-1"></i> Updating...';
+                    messageDiv.innerHTML = '';
+
+                    fetch("{{ route('shop.assignedJobs.updateStatus', $jobApplications->id) }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update badge appearance and text
+                            let badgeClass = '';
+                            let badgeText = newStatus.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            switch (newStatus) {
+                                case 'under_review':
+                                    badgeClass = 'bg-warning text-dark';
+                                    break;
+                                case 'under_repair':
+                                    badgeClass = 'bg-primary';
+                                    break;
+                                case 'ready_for_pickup':
+                                    badgeClass = 'bg-success';
+                                    break;
+                                case 'delivered':
+                                    badgeClass = 'bg-secondary';
+                                    break;
+                                default:
+                                    badgeClass = 'bg-secondary';
+                            }
+                            statusBadge.className = `badge ${badgeClass} px-3 py-2 rounded-pill fw-semibold`;
+                            statusBadge.textContent = badgeText;
+
+                            // Show success message
+                            messageDiv.innerHTML = `<div class="alert alert-success alert-dismissible fade show mb-0 py-2">
+                                <i class="fe fe-check-circle me-1"></i> Status updated successfully!
+                                <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>`;
+                            // Auto hide after 3 seconds
+                            setTimeout(() => {
+                                const alert = messageDiv.querySelector('.alert');
+                                if (alert) alert.remove();
+                            }, 3000);
+                        } else {
+                            throw new Error(data.message || 'Update failed');
+                        }
+                    })
+                    .catch(error => {
+                        messageDiv.innerHTML = `<div class="alert alert-danger alert-dismissible fade show mb-0 py-2">
+                            <i class="fe fe-alert-circle me-1"></i> ${error.message}
+                            <button type="button" class="btn-close p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`;
+                    })
+                    .finally(() => {
+                        updateBtn.disabled = false;
+                        updateBtn.innerHTML = '<i class="fe fe-refresh-ccw me-1"></i> Update Status';
+                    });
+                });
+            }
         });
     </script>
 @endsection

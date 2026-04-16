@@ -251,7 +251,9 @@ class ShopController extends Controller
 
         $shopid = session()->get('shop_id');
 
-        $appliedJobs = JobApplications::where('shop_id', $shopid)->where('status', 'accepted')->latest()->get();
+
+        $appliedJobs = JobApplications::where('shop_id', $shopid)->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup','delivered'])->latest()->get();
+
 
         $data = compact('title', 'appliedJobs');
 
@@ -393,9 +395,9 @@ class ShopController extends Controller
         $shopid = session()->get('shop_id');
 
         $assignedJobs = JobApplications::where('shop_id', $shopid)
-        ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup'])
-        ->latest()
-        ->get();
+            ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup','delivered'])
+            ->latest()
+            ->get();
 
         return view('shop.assigned-jobs.index', compact('title', 'assignedJobs'));
     }
@@ -406,7 +408,7 @@ class ShopController extends Controller
 
         $jobApplications = JobApplications::where('shop_id', $id)
             ->whereNull('technician_id')
-            ->where('status', 'accepted')
+            ->whereIn('status', 'accepted')
             ->latest()
             ->get();
 
@@ -466,9 +468,17 @@ class ShopController extends Controller
     {
         $jobApplication = JobApplications::findOrFail($id);
         $jobApplication->technician_id = null;
+        $jobApplication->status = 'accepted';
         $jobApplication->save();
 
         return redirect()->route('shop.assignedJobs.details', $id)
             ->with('success', 'Technician removed successfully.');
+    }
+    public function updateStatus(Request $request, $id)
+    {
+        $job = JobApplications::findOrFail($id);
+        $job->status = $request->status;
+        $job->save();
+        return response()->json(['success' => true]);
     }
 }
