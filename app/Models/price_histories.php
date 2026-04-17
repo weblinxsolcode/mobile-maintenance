@@ -14,7 +14,7 @@ class price_histories extends Model
         'changed_by'
     ];
 
- 
+
 
 
     public function changedByShop()
@@ -22,7 +22,7 @@ class price_histories extends Model
         return $this->belongsTo(shop::class, 'changed_by');
     }
     public function jobApplication()
-{
-    return $this->belongsTo(JobApplications::class, 'job_application_id');
-}
+    {
+        return $this->belongsTo(JobApplications::class, 'job_application_id');
+    }
 }

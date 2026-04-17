@@ -105,8 +105,10 @@ class JobController extends Controller
 
         $CodeID = $request->job_id;
 
-        $job = JobListings::where('code' , $CodeID)->with('jobApplications', 'userInfo')->first();
 
+        $job = JobListings::where('code' , $CodeID)->with('jobApplications','userInfo')->first();
+
+        
         // $job = JobListings::with('jobApplications', 'userInfo')->find($CodeID);
 
         if (! $job) {
@@ -233,7 +235,9 @@ class JobController extends Controller
             ], 404);
         }
 
-        $getAcceptedOffer = JobApplications::where('job_id', $jobID)->where('status', 'accepted')->first();
+        $getAcceptedOffer = JobApplications::where('job_id', $jobID)
+    ->whereIn('status', ['accepted', 'completed','delivered'])
+    ->first();
 
         if (! $getAcceptedOffer) {
             return response()->json([

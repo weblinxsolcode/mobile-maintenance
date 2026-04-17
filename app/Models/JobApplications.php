@@ -17,6 +17,16 @@ class JobApplications extends Model
         return $this->belongsTo(shop::class, 'shop_id', 'id')->with('reviews');
     }
 
+    public function priceInfo()
+    {
+        return $this->hasMany(price_histories::class, 'job_application_id');
+    }
+
+    // public function priceInfo()
+    // {
+    //     return $this->belongsTo(price_histories::class, 'job', 'id');
+    // }
+
     public function userInfo()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
@@ -27,7 +37,7 @@ class JobApplications extends Model
         return $this->belongsTo(Technicians::class, 'technician_id', 'id');
     }
     public function priceHistories()
-{
-    return $this->hasMany(price_histories::class, 'job_application_id');
-}
+    {
+        return $this->hasMany(price_histories::class, 'job_application_id');
+    }
 }
