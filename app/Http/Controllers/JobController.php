@@ -92,7 +92,7 @@ class JobController extends Controller
     public function getJobDetails(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'code_id' => 'required',
+            'job_id' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -103,7 +103,7 @@ class JobController extends Controller
             ], 422);
         }
 
-        $CodeID = $request->code_id;
+        $CodeID = $request->job_id;
 
         $job = JobListings::where('code' , $CodeID)->with('jobApplications', 'userInfo')->first();
 
