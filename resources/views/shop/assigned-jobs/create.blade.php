@@ -40,6 +40,7 @@
                             <form action="{{ route('shop.assignedJobs.assignTechnician.store', $id) }}" method="POST"
                                 enctype="multipart/form-data" id="assignForm">
                                 @csrf
+                                <input type="hidden" name="user_id" value="{{ $jobApplications->user_id }}">
                                 <!-- Hidden job_id if needed – adjust according to your logic -->
                                 {{-- <input type="hidden" name="job_id" value="{{ $jobId ?? '' }}"> --}}
 

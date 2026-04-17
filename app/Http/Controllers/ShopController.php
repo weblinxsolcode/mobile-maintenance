@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JobApplications;
 use App\Models\JobListings;
+use App\Models\Notifications;
 use App\Models\price_histories;
 use App\Models\Reviews;
 use App\Models\Settings;
@@ -13,9 +14,21 @@ use App\Services\FileHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use App\Services\customBlock;
+use Kreait\Firebase\Factory;
 
 class ShopController extends Controller
 {
+
+    protected $database;
+
+    protected $firebase;
+
+    public function __construct()
+    {
+        $this->database = app('firebase.database');
+        $this->firebase = (new Factory)->withServiceAccount(base_path('storage/app/google.json'));
+    }
     public function showLogin()
     {
         $title = 'Shop Login';
@@ -137,18 +150,48 @@ class ShopController extends Controller
 
 
         try {
-            JobApplications::create([
-                "user_id" => $request->user_id,
-                "shop_id" => session()->get('shop_id'),
-                "job_id" => $id,
-                "technician_id" => null,
-                "status" => "pending",
-                "price" => $request->price,
-                "time" => $request->time,
-                "warranty" => $request->warranty,
-                "warranty_months" => $request->warranty_months,
-                "description" => $request->description,
+            // JobApplications::create([
+            //     "user_id" => $request->user_id,
+            //     "shop_id" => session()->get('shop_id'),
+            //     "job_id" => $id,
+            //     "technician_id" => null,
+            //     "status" => "pending",
+            //     "price" => $request->price,
+            //     "time" => $request->time,
+            //     "warranty" => $request->warranty,
+            //     "warranty_months" => $request->warranty_months,
+            //     "description" => $request->description,
+            // ]);
+
+            $new = new JobApplications();
+            $new->user_id = $request->user_id;
+            $new->shop_id = session()->get('shop_id');
+            $new->job_id = $id;
+            $new->technician_id = null;
+            $new->status = "pending";
+            $new->price = $request->price;
+            $new->time = $request->time;
+            $new->warranty = $request->warranty;
+            $new->warranty_months = $request->warranty_months;
+            $new->description = $request->description;
+
+
+            $title = 'New Job Offer';
+            $description = 'You have a new job offer. Please check your Mobile App.';
+            $userID = $request->user_id;
+
+            customBlock::generateNotificaions($userID, $title, $description, $this->database);
+
+            // Log notification in Firebase
+            customBlock::pushFireBaseData('notificationLogs', $this->database, [
+                'user_id' => $request->user_id,
+                'title' => $title,
+                'description' => $description,
+                'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
             ]);
+
+
+            $new->save();
 
             return redirect()->back()->with('success', 'Offer submitted successfully');
 
@@ -188,6 +231,24 @@ class ShopController extends Controller
                 'changed_by' => session()->get('shop_id'), // assuming shop relation exists
             ]);
         }
+
+        $title = 'Job Offer Updated';
+        if ($oldPrice != $newPrice) {
+            $description = "Your job offer price has been updated from $oldPrice to $newPrice. Please check your Mobile App.";
+        } else {
+            $description = "Your job offer has been updated. Please check your Mobile App.";
+        }
+        $userID = $offer->user_id;
+
+        customBlock::generateNotificaions($userID, $title, $description, $this->database);
+
+        // Log notification in Firebase
+        customBlock::pushFireBaseData('notificationLogs', $this->database, [
+            'user_id' => $offer->user_id,
+            'title' => $title,
+            'description' => $description,
+            'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+        ]);
 
 
         return redirect()->back()->with('success', 'Offer updated successfully.');
@@ -476,11 +537,11 @@ class ShopController extends Controller
     {
         $title = 'Assigned Jobs To Technicians';
 
-        $jobApplications = JobApplications::where('shop_id', $id)
+        $jobApplications = JobApplications::where('id', $id)
             ->whereNull('technician_id')
             ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])
-            ->latest()
-            ->get();
+            ->first();
+
 
         $techniciansList = Technicians::latest()->get();
 
@@ -506,6 +567,20 @@ class ShopController extends Controller
             'technician_id' => $request->technician_id,
             'status' => 'under_review',
             'updated_at' => Carbon::now(),
+        ]);
+
+        $title = 'Job Status';
+        $description = 'Your job status has been updated to: Under Review. Please check the app for more details.';
+        $userID = $request->user_id;
+
+        customBlock::generateNotificaions($userID, $title, $description, $this->database);
+
+        // Log notification in Firebase
+        customBlock::pushFireBaseData('notificationLogs', $this->database, [
+            'user_id' => $userID,
+            'title' => $title,
+            'description' => $description,
+            'created_at' => Carbon::now(),
         ]);
 
         return redirect()->route('shop.assignedJobs.details', $id)->with('success', 'Job assigned to technician successfully');
@@ -552,6 +627,24 @@ class ShopController extends Controller
         if ($job->status == 'delivered') {
             $job->updated_at = Carbon::now();
         }
+
+        $title = 'Job Status Update';
+
+        $statusText = str_replace('_', ' ', $job->status);
+        $description = "Your job has been updated to: " . ucwords($statusText) . ". Please check the app for more details.";
+        $userID = $job->user_id;
+
+        customBlock::generateNotificaions($userID, $title, $description, $this->database);
+
+        // Log notification in Firebase
+        customBlock::pushFireBaseData('notificationLogs', $this->database, [
+            'user_id' => $userID,
+            'title' => $title,
+            'description' => $description,
+            'created_at' => Carbon::now(),
+        ]);
+
+
         $job->save();
         return response()->json(['success' => true]);
     }

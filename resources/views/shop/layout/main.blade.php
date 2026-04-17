@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{{ env('APP_NAME') }} - {{ $title ?? 'Admin' }}</title>
+    <title>Mobile Maintainance - {{ $title ?? 'Admin' }}</title>
 
     <!-- Favicon -->
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('common/default.png') }}">

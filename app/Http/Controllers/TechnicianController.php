@@ -4,14 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\JobApplications;
 use App\Models\Technicians;
+use App\Services\customBlock;
 use App\Services\FileHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Kreait\Firebase\Factory;
 
 class TechnicianController extends Controller
 {
+    protected $database;
 
+    protected $firebase;
+
+    public function __construct()
+    {
+        $this->database = app('firebase.database');
+        $this->firebase = (new Factory)->withServiceAccount(base_path('storage/app/google.json'));
+    }
     public function showLogin()
     {
         $title = 'Technician Login';
@@ -93,6 +103,21 @@ class TechnicianController extends Controller
         if ($jobApp->status == 'delivered') {
             $jobApp->updated_at = Carbon::now();
         }
+
+        $statusText = str_replace('_', ' ', $jobApp->status);
+        $description = "Your job has been updated to: " . ucwords($statusText) . ". Please check the app for more details.";
+        $userID = $jobApp->user_id;
+
+        customBlock::generateNotificaions($userID, 'Job Status Update', $description, $this->database);
+
+        // Log notification in Firebase
+        customBlock::pushFireBaseData('notificationLogs', $this->database, [
+            'user_id' => $userID,
+            'title' => 'Job Status Update',
+            'description' => $description,
+            'created_at' => Carbon::now(),
+        ]);
+
         $jobApp->save();
 
         if ($request->ajax()) {
