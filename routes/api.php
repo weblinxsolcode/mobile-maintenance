@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 // API For User Authentication and Profile Management
 Route::post('/sign-up', [AuthController::class, 'register']);
+Route::post('/social-registration', [AuthController::class, 'socialRegister']);
 Route::post('/verify', [AuthController::class, 'verifyOtp']);
 Route::post('/login', [AuthController::class, 'UserLogin']);
 Route::post('/forget', [AuthController::class, 'forgetPassword']);
