@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Nette\Utils\Random;
 
 class AuthController extends Controller
 {
@@ -56,6 +58,64 @@ class AuthController extends Controller
             'data' => $newUser,
         ], 200);
     }
+
+    // API For social register User by email
+    public function socialRegister(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'phone_number' => 'nullable',
+            'full_name' => 'nullable',
+          
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // email exists but not social
+        $emailUser = User::where('email', $request->email)->first();
+        if ($emailUser && $emailUser->registration_type != 'social') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email already registered with password login',
+            ], 401);
+        }
+
+        if ($emailUser && $emailUser->registration_type == 'social') {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Login successful', 
+                'data' => $emailUser,
+            ], 200);
+        }
+
+        $otp_code = StringHelper::generateOTP();
+        $code = $otp_code;
+        // $name = $request->full_name ?: $request->email;
+        $password = Str::random(10);
+
+        $newUser = new User;
+        $newUser->registration_type = 'social';
+        $newUser->email = $request->email;
+        $newUser->full_name = $request->input('full_name', 'null');
+        $newUser->phone_number = $request->input('phone_number');
+        $newUser->password = Hash::make($password);
+        $newUser->otp_code = $code;
+        $newUser->status = 'active';
+        $newUser->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User created successfully',
+            'data' => $newUser,
+        ], 200);
+    }
+
 
     // API For Verifying OTP
     public function verifyOtp(Request $request)
