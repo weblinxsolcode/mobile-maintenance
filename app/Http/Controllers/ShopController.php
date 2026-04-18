@@ -395,11 +395,12 @@ class ShopController extends Controller
     {
         $title = 'Job Offer Details';
 
-        $appliedJobs = JobApplications::where('id', $id)->first();
+        $appliedJobs = JobApplications::with('priceHistories.changedByShop')
+            ->where('id', $id)
+            ->where('shop_id', session()->get('shop_id')) // only if the job has a shop_id column
+            ->firstOrFail();
 
-        $data = compact('title', 'appliedJobs');
-
-        return view('shop.orders.details', $data);
+        return view('shop.orders.details', compact('title', 'appliedJobs'));
     }
 
     public function ordersStatus(Request $request, $id)

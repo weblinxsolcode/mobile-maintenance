@@ -554,7 +554,9 @@
             .jd-stat-value {
                 font-size: 20px;
             }
-        }/* Price History Table */
+        }
+
+        /* Price History Table */
         .jd-price-history-table {
             width: 100%;
             border-collapse: collapse;
@@ -605,7 +607,7 @@
         }
     </style>
 
-    <div class="page-wrapper">
+    <div class="page-wrapper pb-3">
         <div class="content container-fluid">
 
             {{-- Back --}}
@@ -789,41 +791,33 @@
                     </div>
                 </div>
             </div>
-
-            {{-- Existing Offer Details --}}
             @if ($appliedJobs && $appliedJobs->priceHistories->count())
-                <div class="jd-card">
-                    <div class="jd-card-header">
-                        <div class="jd-card-icon amber">📊</div>
-                        <span class="jd-card-title">Price Modification History</span>
-                    </div>
-                    <div class="jd-card-body p-0">
-                        <div class="table-responsive">
-                            <table class="jd-price-history-table">
-                                <thead>
+            <div class="jd-card">
+                <div class="jd-card-header">
+                    <div class="jd-card-icon amber">📊</div>
+                    <span class="jd-card-title">Price Modification History</span>
+                </div>
+                <div class="jd-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="jd-price-history-table">
+                            <thead>
+                                <tr><th>Old Price</th><th>New Price</th><th>Modified On</th><th>Changed By</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($appliedJobs->priceHistories as $history)
                                     <tr>
-                                        <th>Old Price</th>
-                                        <th>New Price</th>
-                                        <th>Modified On</th>
-                                        <th>Changed By</th>
+                                        <td class="old-price">${{ number_format($history->old_price, 2) }}</td>
+                                        <td class="new-price">${{ number_format($history->new_price, 2) }}</td>
+                                        <td class="mod-date">{{ $history->created_at->format('M d, Y \a\t h:i A') }}</td>
+                                        <td class="changed-by">{{ $history->changedByShop->name ?? 'Shop' }}</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($existingOffer->priceHistories as $history)
-                                        <tr>
-                                            <td class="old-price">${{ number_format($history->old_price, 2) }}</td>
-                                            <td class="new-price">${{ number_format($history->new_price, 2) }}</td>
-                                            <td class="mod-date">{{ $history->created_at->format('M d, Y \a\t h:i A') }}
-                                            </td>
-                                            <td class="changed-by">{{ $history->changedByShop->name ?? 'Shop' }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            @endif
+            </div>
+        @endif
 
         </div>
     </div>
