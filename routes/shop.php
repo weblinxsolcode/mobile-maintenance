@@ -118,7 +118,27 @@ Route::prefix('shop')->group(function () {
             Route::get('/delete/{id}', [ShopController::class, 'reviewsDelete'])->name('shop.reviews.delete');
 
         });
+        // Brands
+        Route::prefix('brands')->group(function () {
 
+            Route::get('/list', [ShopController::class, 'brands'])->name('shop.brands.index');
+
+            Route::post('/store', [ShopController::class, 'storeBrand'])->name('shop.brands.store');
+
+            Route::put('/update/{id}', [ShopController::class, 'updateBrand'])->name('shop.brands.update');
+
+            Route::get('/delete/{id}', [ShopController::class, 'brandsDelete'])->name('shop.brands.delete');
+        });
+
+        // Models
+        Route::prefix('models')->group(function () {
+
+            Route::get('/list', [ShopController::class, 'models'])->name('shop.models.index');
+
+            Route::post('/store', [ShopController::class, 'storeModel'])->name('shop.models.store');
+
+            Route::put('/update/{id}', [ShopController::class, 'updateModel'])->name('shop.models.update');
+        });
         // Profile
         Route::get('/profile', [ShopController::class, 'profile'])->name('shop.profile');
 

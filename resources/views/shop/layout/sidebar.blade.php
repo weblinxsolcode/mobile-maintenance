@@ -13,6 +13,13 @@
                 <li class="{{ Route::is(['shop.dashboard']) ? 'active' : '' }}">
                     <a href="{{ route('shop.dashboard') }}"><i class="fe fe-home"></i> <span>Dashboard</span></a>
                 </li>
+                <li class="{{ Route::is(['shop.brands.*']) ? 'active' : '' }}">
+                    <a href="{{ route('shop.brands.index') }}"><i class="fa fa-tags"></i><span>Brands</span></a>
+                </li>
+                <li class="{{ Route::is(['shop.models.*']) ? 'active' : '' }}">
+                    <a href="{{ route('shop.models.index') }}"><i class="fa fa-cubes"></i><span>Models</span></a>
+                </li>
+
                 <li class="{{ Route::is(['shop.technicians.*']) ? 'active' : '' }}">
                     <a href="{{ route('shop.technicians.index') }}"><i class="fe fe-users"></i> <span>Technicians</span></a>
                 </li>

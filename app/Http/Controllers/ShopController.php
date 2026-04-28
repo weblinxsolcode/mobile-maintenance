@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JobApplications;
 use App\Models\JobListings;
+use App\Models\Management;
 use App\Models\Notifications;
 use App\Models\price_histories;
 use App\Models\Reviews;
@@ -648,5 +649,90 @@ class ShopController extends Controller
 
         $job->save();
         return response()->json(['success' => true]);
+    }
+    public function brands()
+    {
+        $title = 'Brands';
+
+        $brand = Management::where('role', 'Brand')->latest()->get();
+
+
+        $data = compact('title', 'brand');
+
+        return view('shop.brands.index', $data);
+    }
+    public function brandsDelete($id)
+    {
+        Management::where('id', $id)->delete();
+        return redirect()->back()->with('success', 'Brand deleted successfully');
+    }
+    public function storeBrand(Request $request)
+    {
+        $request->validate([
+            'name' => 'required'
+        ]);
+
+        Management::create([
+            'name' => $request->name,
+            'role' => 'Brand'
+        ]);
+
+        return redirect()->back()->with('success', 'Brand created successfully');
+    }
+    public function updateBrand(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required'
+        ]);
+
+        Management::where('id', $id)->update([
+            'name' => $request->name
+        ]);
+
+        return redirect()->back()->with('success', 'Brand updated successfully');
+    }
+    public function models()
+    {
+        $title = 'Models';
+
+        $model = Management::where('role', 'Model')
+            ->with('brand')
+            ->latest()
+            ->get();
+
+        $brands = Management::where('role', 'Brand')->get();
+
+        $data = compact('title', 'model', 'brands');
+
+        return view('shop.models.index', $data);
+    }
+    public function storeModel(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'parent_id' => 'required'
+        ]);
+
+        Management::create([
+            'name' => $request->name,
+            'role' => 'Model',
+            'parent_id' => $request->parent_id
+        ]);
+
+        return redirect()->back()->with('success', 'Model created successfully');
+    }
+    public function updateModel(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required',
+            'parent_id' => 'required'
+        ]);
+
+        Management::where('id', $id)->update([
+            'name' => $request->name,
+            'parent_id' => $request->parent_id
+        ]);
+
+        return redirect()->back()->with('success', 'Model updated successfully');
     }
 }
