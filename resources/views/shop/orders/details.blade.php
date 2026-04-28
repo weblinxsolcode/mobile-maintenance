@@ -133,7 +133,7 @@
             color: #fff;
         }
 
-        .jd-hero::before {
+        /* .jd-hero::before {
             content: '';
             position: absolute;
             top: -60px;
@@ -153,7 +153,7 @@
             height: 160px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.05);
-        }
+        } */
 
         .jd-hero-code {
             font-family: 'DM Mono', monospace;
