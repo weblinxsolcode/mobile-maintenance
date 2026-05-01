@@ -72,9 +72,9 @@ class JobController extends Controller
 
         $job->save();
 
-        userServices::generateNotification($userID, 'Job Created', 'Your job '.$jobCode.' has been created successfully.');
+        userServices::generateNotification($userID, 'Job Created', 'Your job ' . $jobCode . ' has been created successfully.');
 
-        userServices::sendPushNotifications($userID, 'Job Created', 'Your job '.$jobCode.' has been created successfully.');
+        userServices::sendPushNotifications($userID, 'Job Created', 'Your job ' . $jobCode . ' has been created successfully.');
 
         $item = JobListings::with('jobApplications', 'userInfo')->find($job->id);
 
@@ -86,6 +86,70 @@ class JobController extends Controller
             'item' => $item,
             'count' => $list->count(),
             'list' => $list,
+        ], 200);
+    }
+
+    public function editJob(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'job_id' => 'required|exists:users,id',
+            'user_id' => 'required|exists:users,id',
+            'full_name' => 'nullable',
+            'phone_number' => 'nullable',
+            'brand' => 'nullable',
+            'model' => 'nullable',
+            'description' => 'nullable',
+            'service_type' => 'nullable',
+            'cover_image' => 'nullable|image',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $id = $request->job_id;
+
+        $job = JobListings::where('id', $id)
+            ->where('user_id', $request->user_id)
+            ->first();
+
+        if (!$job) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Job not found or unauthorized access',
+            ], 404);
+        }
+
+        // Update fields only if provided
+        $job->full_name = $request->full_name ?? $job->full_name;
+        $job->phone_number = $request->phone_number ?? $job->phone_number;
+        $job->brand = $request->brand ?? $job->brand;
+        $job->model = $request->model ?? $job->model;
+        $job->description = $request->description ?? $job->description;
+        $job->service_type = $request->service_type ?? $job->service_type;
+
+        // Image update
+        if ($request->hasFile('cover_image')) {
+            $imagePath = FileHelper::uploadImage($request->file('cover_image'), 'jobs');
+            $job->cover_image = $imagePath;
+        }
+
+        $job->save();
+
+        $updatedJob = JobListings::with('jobApplications', 'userInfo')
+            ->find($job->id);
+
+        // $job = JobListings::where('code', $CodeID)->with('jobApplications', 'userInfo')->first();
+
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Job updated successfully',
+            'item' => $updatedJob,
         ], 200);
     }
 
@@ -106,9 +170,9 @@ class JobController extends Controller
         $CodeID = $request->job_id;
 
 
-        $job = JobListings::where('code' , $CodeID)->with('jobApplications','userInfo')->first();
+        $job = JobListings::where('code', $CodeID)->with('jobApplications', 'userInfo')->first();
 
-        
+
         // $job = JobListings::with('jobApplications', 'userInfo')->find($CodeID);
 
         if (! $job) {
@@ -153,9 +217,9 @@ class JobController extends Controller
         $application->status = 'accepted';
         $application->save();
 
-        userServices::generateNotification($application->user_id, 'Offer Accepted', 'Your offer for job ID '.$application->job_id.' has been accepted.');
+        userServices::generateNotification($application->user_id, 'Offer Accepted', 'Your offer for job ID ' . $application->job_id . ' has been accepted.');
 
-        userServices::sendPushNotifications($application->user_id, 'Offer Accepted', 'Your offer for job ID '.$application->job_id.' has been accepted.');
+        userServices::sendPushNotifications($application->user_id, 'Offer Accepted', 'Your offer for job ID ' . $application->job_id . ' has been accepted.');
 
         $item = JobListings::with('jobApplications', 'userInfo')->find($application->job_id);
 
@@ -236,8 +300,8 @@ class JobController extends Controller
         }
 
         $getAcceptedOffer = JobApplications::where('job_id', $jobID)
-    ->whereIn('status', ['accepted', 'completed','delivered'])
-    ->first();
+            ->whereIn('status', ['accepted', 'completed', 'delivered'])
+            ->first();
 
         if (! $getAcceptedOffer) {
             return response()->json([
@@ -265,9 +329,9 @@ class JobController extends Controller
         $new->review = $review;
         $new->save();
 
-        userServices::generateNotification($userID, 'Review Stored', 'Your review for job ID '.$jobID.' has been stored successfully.');
+        userServices::generateNotification($userID, 'Review Stored', 'Your review for job ID ' . $jobID . ' has been stored successfully.');
 
-        userServices::sendPushNotifications($userID, 'Review Stored', 'Your review for job ID '.$jobID.' has been stored successfully.');
+        userServices::sendPushNotifications($userID, 'Review Stored', 'Your review for job ID ' . $jobID . ' has been stored successfully.');
 
         $item = JobListings::with('jobApplications', 'userInfo')->find($jobID);
 
@@ -345,6 +409,5 @@ class JobController extends Controller
             'count' => $list->count(),
             'list' => $list,
         ], 200);
-
     }
 }
