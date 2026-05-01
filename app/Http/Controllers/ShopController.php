@@ -179,7 +179,7 @@ class ShopController extends Controller
 
             $title = 'New Job Offer';
             $description = 'You have a new job offer. Please check your Mobile App.';
-            $userID = $request->user_id;
+            $userID = '00' . $request->user_id;
 
             customBlock::generateNotificaions($userID, $title, $description, $this->database);
 
@@ -239,7 +239,7 @@ class ShopController extends Controller
         } else {
             $description = "Your job offer has been updated. Please check your Mobile App.";
         }
-        $userID = $offer->user_id;
+        $userID = '00' . $offer->user_id;
 
         customBlock::generateNotificaions($userID, $title, $description, $this->database);
 
@@ -573,7 +573,7 @@ class ShopController extends Controller
 
         $title = 'Job Status';
         $description = 'Your job status has been updated to: Under Review. Please check the app for more details.';
-        $userID = $request->user_id;
+        $userID = '00' . $request->user_id;
 
         customBlock::generateNotificaions($userID, $title, $description, $this->database);
 
@@ -634,7 +634,7 @@ class ShopController extends Controller
 
         $statusText = str_replace('_', ' ', $job->status);
         $description = "Your job has been updated to: " . ucwords($statusText) . ". Please check the app for more details.";
-        $userID = $job->user_id;
+        $userID = '00' . $job->user_id;
 
         customBlock::generateNotificaions($userID, $title, $description, $this->database);
 
