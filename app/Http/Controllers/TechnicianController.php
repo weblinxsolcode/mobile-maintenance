@@ -106,7 +106,7 @@ class TechnicianController extends Controller
 
         $statusText = str_replace('_', ' ', $jobApp->status);
         $description = "Your job has been updated to: " . ucwords($statusText) . ". Please check the app for more details.";
-        $userID = '00' . $jobApp->user_id;
+        $userID =  $jobApp->user_id;
 
         customBlock::generateNotificaions($userID, 'Job Status Update', $description, $this->database);
 
