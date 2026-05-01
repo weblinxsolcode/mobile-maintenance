@@ -45,6 +45,8 @@ Route::prefix('job')->group(function () {
     // Create Job
     Route::post('/create', [JobController::class, 'createJob']);
 
+    Route::post('/edit', [JobController::class, 'editJob']);
+
     // Get Job Details
     Route::post('/get-details', [JobController::class, 'getJobDetails']);
 
