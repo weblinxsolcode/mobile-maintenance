@@ -66,7 +66,7 @@ class ShopController extends Controller
         $shop->status = 'pending';
         $shop->save();
 
-        userServices::generateNotification($usersID, 'Shop Created', 'Your shop '.$title.' has been created successfully and is now pending for approval.');
+        userServices::generateNotification($usersID, 'Shop Created', 'Your shop ' . $title . ' has been created successfully and is now pending for approval.');
 
         return response()->json([
             'status' => 'success',
@@ -86,6 +86,9 @@ class ShopController extends Controller
                 'message' => 'No shops found',
             ], 200);
         }
+
+        $shops->load(['services.metas']);
+
 
         return response()->json([
             'status' => 'success',
@@ -146,12 +149,14 @@ class ShopController extends Controller
         // Haversine formula to calculate distance in kilometers
         $shops = userServices::getNearbyShops($latitude, $longitude, $circleRadius);
 
+        $shops->load(['services.metas']);
+
         $count = $shops->count();
 
         if ($shops->isEmpty()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'No shops found within '.$circleRadius.'km',
+                'message' => 'No shops found within ' . $circleRadius . 'km',
             ], 200);
         }
 

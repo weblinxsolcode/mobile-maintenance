@@ -71,3 +71,5 @@ Route::prefix('notifications')->group(function () {
     Route::post('/get', [NotificationController::class, 'getNotifications']);
     Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
 });
+
+Route::post('/store-review', [JobController::class, 'storeReview']);

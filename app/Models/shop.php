@@ -30,5 +30,13 @@ class shop extends Model
         return $this->hasMany(Reviews::class, 'shop_id', 'id');
     }
 
-
+    public function services()
+    {
+        return $this->belongsToMany(
+            Service::class,
+            'shop_services',
+            'shop_id',
+            'services_id'
+        );
+    }
 }
