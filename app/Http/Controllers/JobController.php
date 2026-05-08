@@ -155,9 +155,9 @@ class JobController extends Controller
 
         userServices::sendPushNotifications($userID, 'Job Created', 'Your job ' . $jobCode . ' has been created successfully.');
 
-        $item = JobListings::with('jobApplications', 'userInfo','serviceInfo.serviceMetas')->find($job->id);
+        $item = JobListings::with('jobApplications', 'userInfo', 'serviceInfo.serviceMetas')->find($job->id);
 
-        $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo','serviceInfo.serviceMetas')->latest()->get();
+        $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo', 'serviceInfo.serviceMetas')->latest()->get();
 
         return response()->json([
             'status' => 'success',
@@ -496,8 +496,12 @@ class JobController extends Controller
 
         $serviceID = $request->service_id;
 
-        $list = JobListings::where('service_id', $serviceID)->with('jobApplications', 'userInfo','serviceInfo.serviceMetas')
-            ->latest()->get();
+        // $list = JobListings::where('service_id', $serviceID)->with('jobApplications', 'userInfo','serviceInfo.serviceMetas')->latest()->get();
+        $list = JobListings::where('service_id', $serviceID)->with([
+            'serviceInfo',
+            'jobApplications.shopInfo.reviews'
+        ])->get();
+
 
         return response()->json([
             'status' => 'success',
