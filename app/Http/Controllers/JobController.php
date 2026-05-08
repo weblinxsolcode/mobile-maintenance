@@ -89,6 +89,85 @@ class JobController extends Controller
         ], 200);
     }
 
+    public function createJobByService(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required',
+            'service_id' => 'required',
+            'full_name' => 'required',
+            'phone_number' => 'required',
+            'brand' => 'required',
+            'model' => 'required',
+            'description' => 'required',
+            'service_type' => 'required',
+            'cover_image' => 'nullable',
+
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $jobCode = userServices::generateCode();
+
+        $userID = $request->user_id;
+        $serviceID = $request->service_id;
+        $fullName = $request->full_name;
+        $phoneNumber = $request->phone_number;
+        $brand = $request->brand;
+        $model = $request->model;
+        $description = $request->description;
+        $serviceType = $request->service_type;
+
+        $checkingUser = User::find($userID);
+
+        if (! $checkingUser) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found',
+            ], 404);
+        }
+
+        $imagePath = [];
+
+        $job = new JobListings;
+        $job->code = $jobCode;
+        $job->user_id = $userID;
+        $job->service_id = $serviceID;
+        $job->full_name = $fullName;
+        $job->phone_number = $phoneNumber;
+        $job->brand = $brand;
+        $job->model = $model;
+        $job->description = $description;
+        $job->service_type = $serviceType;
+        if ($request->hasFile('cover_image')) {
+            $imagePath = FileHelper::uploadImage($request->file('cover_image'), 'jobs');
+            $job->cover_image = $imagePath;
+        }
+
+        $job->save();
+
+        userServices::generateNotification($userID, 'Job Created', 'Your job ' . $jobCode . ' has been created successfully.');
+
+        userServices::sendPushNotifications($userID, 'Job Created', 'Your job ' . $jobCode . ' has been created successfully.');
+
+        $item = JobListings::with('jobApplications', 'userInfo','serviceInfo.serviceMetas')->find($job->id);
+
+        $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo','serviceInfo.serviceMetas')->latest()->get();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Job created successfully',
+            'item' => $item,
+            'count' => $list->count(),
+            'list' => $list,
+        ], 200);
+    }
+
     public function editJob(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -393,15 +472,32 @@ class JobController extends Controller
         $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo')
             ->latest()->get();
 
-        // $list = JobListings::where('user_id', $userID)
-        //     ->with([
-        //         'jobApplications.shopInfo' => function ($q) {
-        //             $q->withAvg('reviews', 'rating');
-        //         },
-        //         'userInfo',
-        //     ])
-        //     ->latest()
-        //     ->get();
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Jobs fetched successfully',
+            'count' => $list->count(),
+            'list' => $list,
+        ], 200);
+    }
+
+    public function getJobByService(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'service_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $serviceID = $request->service_id;
+
+        $list = JobListings::where('service_id', $serviceID)->with('jobApplications', 'userInfo','serviceInfo.serviceMetas')
+            ->latest()->get();
 
         return response()->json([
             'status' => 'success',

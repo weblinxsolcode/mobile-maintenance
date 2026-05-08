@@ -8,9 +8,8 @@ class JobListings extends Model
 {
     public function jobApplications()
     {
-        return $this->hasMany(JobApplications::class, 'job_id', 'id')->with('priceInfo','shopInfo',);
+        return $this->hasMany(JobApplications::class, 'job_id', 'id')->with('priceInfo', 'shopInfo');
     }
-
 
     public function userInfo()
     {
@@ -29,5 +28,9 @@ class JobListings extends Model
     public function shop()
     {
         return $this->belongsTo(shop::class);
+    }
+    public function serviceInfo()
+    {
+        return $this->belongsTo(Service::class, 'service_id', 'id');
     }
 }

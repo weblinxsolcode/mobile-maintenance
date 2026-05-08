@@ -89,7 +89,6 @@ class ShopController extends Controller
 
         $shops->load(['services.metas']);
 
-
         return response()->json([
             'status' => 'success',
             'data' => $shops,

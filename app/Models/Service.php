@@ -21,4 +21,9 @@ class Service extends Model
     {
         return $this->hasMany(ServiceMeta::class, 'services_id');
     }
+
+    public function serviceMetas()
+    {
+        return $this->hasMany(ServiceMeta::class, 'services_id', 'id');
+    }
 }
