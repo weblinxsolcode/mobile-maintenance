@@ -171,7 +171,7 @@ class JobController extends Controller
     public function editJob(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'job_id' => 'required|exists:users,id',
+            'job_id' => 'required|exists:job_listings,id',
             'user_id' => 'required|exists:users,id',
             'full_name' => 'nullable',
             'phone_number' => 'nullable',
@@ -231,6 +231,8 @@ class JobController extends Controller
             'item' => $updatedJob,
         ], 200);
     }
+
+    
 
     public function getJobDetails(Request $request)
     {

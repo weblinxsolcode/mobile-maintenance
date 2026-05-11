@@ -21,7 +21,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'registration_type' => 'required',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required',
             'phone_number' => 'nullable',
             'full_name' => 'nullable',
             'password' => 'required',
@@ -33,6 +33,15 @@ class AuthController extends Controller
                 'message' => 'Validation failed',
                 'errors' => $validator->errors(),
             ], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email is already taken',
+            ], 409);
         }
 
         $otp_code = StringHelper::generateOTP();
@@ -66,7 +75,7 @@ class AuthController extends Controller
             'email' => 'required|email',
             'phone_number' => 'nullable',
             'full_name' => 'nullable',
-          
+
         ]);
 
         if ($validator->fails()) {
@@ -89,7 +98,7 @@ class AuthController extends Controller
         if ($emailUser && $emailUser->registration_type == 'social') {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Login successful', 
+                'message' => 'Login successful',
                 'data' => $emailUser,
             ], 200);
         }
