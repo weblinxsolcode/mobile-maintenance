@@ -760,7 +760,7 @@ class ShopController extends Controller
 
         $shopid = session()->get('shop_id');
 
-        $assignedJobs = JobApplications::where('shop_id', $shopid)->where('service_id', '==', null)
+        $assignedJobs = JobApplications::where('shop_id', $shopid)->where('service_id', '=', null)
             ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])
             ->latest()
             ->get();
