@@ -137,6 +137,7 @@ Route::prefix('shop')->group(function () {
 
             Route::post('/update/{id}', [ShopController::class, 'servicesUpdate'])->name('shop.services.update');
 
+            Route::post('/status/{id}', [ShopController::class, 'servicesStatusUpdate'])->name('shop.services.status');
 
         });
         // Brands

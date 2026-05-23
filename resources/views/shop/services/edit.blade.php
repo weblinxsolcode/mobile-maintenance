@@ -49,10 +49,6 @@
                             <textarea style="height: 100px;" name="description" class="form-control" required>{{ $service->description }}</textarea>
                         </div>
 
-                        
-
-                       
-
                         <hr>
 
                         <!-- BRAND -->

@@ -410,7 +410,6 @@ class ShopController extends Controller
         $request->validate([
             'title' => 'required',
             'description' => 'required',
-            'status' => 'required',
             'brand' => 'required',
             'model' => 'required',
             'price' => 'required',
@@ -436,7 +435,6 @@ class ShopController extends Controller
             'title' => $request->title,
             'description' => $request->description,
             'cover_image' => $filename,
-            'status' => $request->status,
         ]);
 
         /*
@@ -484,6 +482,19 @@ class ShopController extends Controller
         return redirect()
             ->route('shop.services.index')
             ->with('success', 'Service updated successfully');
+    }
+
+    public function servicesStatusUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required',
+        ]);
+
+        Service::where('id', $id)->update([
+            'status' => $request->status,
+        ]);
+
+        return redirect()->back()->with('success', 'Status updated successfully');
     }
 
 

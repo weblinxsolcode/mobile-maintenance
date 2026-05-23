@@ -56,7 +56,7 @@
                                 <!-- BRAND -->
                                 <div class="col-md-4">
                                     <label class="form-label">Brand</label>
-                                    <input type="text" name="brand" class="form-control" value="brand">
+                                    <input type="text" name="brand" class="form-control">
                                     
                                 </div>
 

@@ -106,7 +106,7 @@
                                         </td>
 
                                         <td>
-                                            
+
                                             <button class="btn btn-sm bg-secondary text-white"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#updateStatus{{ $item->id }}">
@@ -121,7 +121,7 @@
                                                 Edit
 
                                             </a>
-                                       
+
 
                                             <button class="btn btn-sm bg-danger text-white" data-bs-toggle="modal"
                                                 data-bs-target="#deleteManagement{{ $item->id }}">
@@ -157,6 +157,61 @@
                                                         Yes
                                                     </a>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="modal fade" id="updateStatus{{ $item->id }}" tabindex="-1"
+                                        aria-labelledby="updateStatusLabel{{ $item->id }}" aria-hidden="true">
+
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+
+                                                <form action="{{ route('shop.services.status', $item->id) }}" method="POST">
+                                                    @csrf
+
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="updateStatusLabel{{ $item->id }}">
+                                                            Update Status | {{ ucfirst($item->title ?? 'N/A') }}
+                                                        </h5>
+
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+
+                                                    <div class="modal-body">
+
+                                                        <p class="mb-3 text-center">
+                                                            Select new status for this service
+                                                        </p>
+
+                                                        <select name="status" class="form-control" required>
+                                                            <option value="active" {{ $item->status == 'active' ? 'selected' : '' }}>
+                                                                Active
+                                                            </option>
+
+                                                            <option value="pending" {{ $item->status == 'pending' ? 'selected' : '' }}>
+                                                                Pending
+                                                            </option>
+
+                                                            <option value="inactive" {{ $item->status == 'inactive' ? 'selected' : '' }}>
+                                                                Inactive
+                                                            </option>
+                                                        </select>
+
+                                                    </div>
+
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            Cancel
+                                                        </button>
+
+                                                        <button type="submit" class="btn btn-primary">
+                                                            Update Status
+                                                        </button>
+                                                    </div>
+
+                                                </form>
+
                                             </div>
                                         </div>
                                     </div>
