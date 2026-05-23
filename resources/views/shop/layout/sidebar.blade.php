@@ -20,6 +20,10 @@
                     <a href="{{ route('shop.models.index') }}"><i class="fa fa-cubes"></i><span>Models</span></a>
                 </li>
 
+                <li class="{{ Route::is(['shop.services.*']) ? 'active' : '' }}">
+                    <a href="{{ route('shop.services.index') }}"><i class="fa fa-briefcase"></i><span>Services</span></a>
+                </li>
+
                 <li class="{{ Route::is(['shop.technicians.*']) ? 'active' : '' }}">
                     <a href="{{ route('shop.technicians.index') }}"><i class="fe fe-users"></i> <span>Technicians</span></a>
                 </li>

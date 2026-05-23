@@ -8,8 +8,11 @@ use App\Models\Management;
 use App\Models\Notifications;
 use App\Models\price_histories;
 use App\Models\Reviews;
+use App\Models\Service;
+use App\Models\ServiceMeta;
 use App\Models\Settings;
 use App\Models\shop;
+use App\Models\shopService;
 use App\Models\Technicians;
 use App\Services\FileHelper;
 use Illuminate\Http\Request;
@@ -65,7 +68,6 @@ class ShopController extends Controller
             session()->put('shop_id', $checkExisting->id);
 
             return redirect()->route('shop.dashboard')->with('success', 'Login successfully');
-
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Something went wrong. Please try again later.');
         }
@@ -195,7 +197,6 @@ class ShopController extends Controller
             $new->save();
 
             return redirect()->back()->with('success', 'Offer submitted successfully');
-
         } catch (\Throwable $th) {
             return redirect()->back()->with([
                 'error' => 'Something went wrong. Please try again later.'
@@ -254,11 +255,210 @@ class ShopController extends Controller
 
         return redirect()->back()->with('success', 'Offer updated successfully.');
     }
+
+    // Services
+    public function services()
+    {
+        $title = 'Services';
+
+        $shopid = session()->get('shop_id');
+        $ServiceIds = ShopService::where('shop_id', $shopid)->pluck('services_id');
+
+        $servicesList = Service::whereIn('id', $ServiceIds)->latest()->get();
+        $servicesList->load(['serviceMetas']);
+
+        $data = compact('title', 'servicesList');
+
+        return view('shop.services.index', $data);
+    }
+
+    public function servicesCreate()
+    {
+        $title = 'Add Service';
+
+        $data = compact('title');
+
+        return view('shop.services.create', $data);
+    }
+
+
+    public function servicesStore(Request $request)
+    {
+        $request->validate([
+            'title' => 'required',
+            'description' => 'required',
+            'cover_image' => 'required|image',
+            'status' => 'required',
+            'brand' => 'required',
+            'model' => 'required',
+            'price' => 'required',
+            'discount' => 'required',
+            'skills' => 'required|string',
+        ]);
+
+
+
+        // Upload image
+        $filename = null;
+
+        if ($request->hasFile('cover_image')) {
+            $filename = FileHelper::uploadFile($request->file('cover_image'), 'jobs');
+        }
+
+        // Create main service
+        $service = Service::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'cover_image' => $filename,
+            'status' => $request->status,
+        ]);
+
+
+        $metaData = [
+            'brand' => $request->brand,
+            'model' => $request->model,
+            'price' => $request->price,
+            'discount' => $request->discount,
+        ];
+
+        foreach ($metaData as $type => $value) {
+            ServiceMeta::create([
+                'services_id' => $service->id,
+                'type' => $type,
+                'value' => $value,
+            ]);
+        }
+
+        $skills = array_filter(array_map('trim', explode(',', $request->skills)));
+
+        foreach ($skills as $skill) {
+            ServiceMeta::create([
+                'services_id' => $service->id,
+                'type' => 'skill',
+                'value' => $skill,
+            ]);
+        }
+
+        ShopService::create([
+            'services_id' => $service->id,
+            'shop_id' => session()->get('shop_id'),
+        ]);
+
+        return redirect()
+            ->route('shop.services.index')
+            ->with('success', 'Service added successfully');
+    }
+
+    public function servicesDelete($id)
+    {
+        Service::where('id', $id)->delete();
+
+        return redirect()->back()->with('success', 'Service deleted successfully');
+    }
+
+    public function servicesEdit($id)
+    {
+        $title = 'Edit Service';
+
+        $service = Service::where('id', $id)->first();
+
+        $metas = ServiceMeta::where('services_id', $service->id)->get();
+
+        return view('shop.services.edit', compact( 'title','service', 'metas'));
+
+    }
+
+
+    public function servicesUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required',
+            'description' => 'required',
+            'status' => 'required',
+            'brand' => 'required',
+            'model' => 'required',
+            'price' => 'required',
+            'discount' => 'required',
+            'skills' => 'required|string',
+            'cover_image' => 'nullable|image',
+        ]);
+
+        $service = Service::findOrFail($id);
+
+        /*
+    |---------------------------------
+    | UPDATE MAIN SERVICE
+    |---------------------------------
+    */
+        $filename = $service->cover_image;
+
+        if ($request->hasFile('cover_image')) {
+            $filename = FileHelper::uploadFile($request->file('cover_image'), 'jobs');
+        }
+
+        $service->update([
+            'title' => $request->title,
+            'description' => $request->description,
+            'cover_image' => $filename,
+            'status' => $request->status,
+        ]);
+
+        /*
+    |---------------------------------
+    | DELETE OLD METAS (IMPORTANT)
+    |---------------------------------
+    */
+        ServiceMeta::where('services_id', $service->id)->delete();
+
+        /*
+    |---------------------------------
+    | RECREATE SINGLE VALUE METAS
+    |---------------------------------
+    */
+        $metaData = [
+            'brand' => $request->brand,
+            'model' => $request->model,
+            'price' => $request->price,
+            'discount' => $request->discount,
+        ];
+
+        foreach ($metaData as $type => $value) {
+            ServiceMeta::create([
+                'services_id' => $service->id,
+                'type' => $type,
+                'value' => $value,
+            ]);
+        }
+
+        /*
+    |---------------------------------
+    | RECREATE SKILLS (MULTIPLE)
+    |---------------------------------
+    */
+        $skills = array_filter(array_map('trim', explode(',', $request->skills)));
+
+        foreach ($skills as $skill) {
+            ServiceMeta::create([
+                'services_id' => $service->id,
+                'type' => 'skill',
+                'value' => $skill,
+            ]);
+        }
+
+        return redirect()
+            ->route('shop.services.index')
+            ->with('success', 'Service updated successfully');
+    }
+
+
+
+
     public function technicians()
     {
         $title = 'Technicians';
 
         $techniciansList = Technicians::latest()->get();
+
 
         $data = compact('title', 'techniciansList');
 
@@ -303,7 +503,6 @@ class ShopController extends Controller
             ]);
 
             return redirect()->route('shop.technicians.index')->with('success', 'Technician added successfully');
-
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Something went wrong. Please try again later.');
         }
@@ -364,7 +563,6 @@ class ShopController extends Controller
             return redirect()
                 ->route('shop.technicians.index')
                 ->with('success', 'Technician updated successfully');
-
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', $th->getMessage());
         }
@@ -515,7 +713,6 @@ class ShopController extends Controller
             ]);
 
             return redirect()->back()->with('success', 'Profile updated successfully');
-
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', $th->getMessage());
         }
