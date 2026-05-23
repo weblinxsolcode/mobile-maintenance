@@ -36,6 +36,8 @@ Route::prefix('shop')->group(function () {
             // Applied Job Delete
             Route::get('/delete/{id}', [ShopController::class, 'appliedJobsDelete'])->name('shop.appliedJobs.delete');
 
+            Route::get('/accept/{id}', [ShopController::class, 'acceptOffer'])->name('shop.appliedJobs.acceptOffer');
+
             // Submit Offer
             Route::post('/submit-offer/{id}', [ShopController::class, 'submitOffer'])->name('shop.appliedJobs.submitOffer');
 
@@ -43,6 +45,7 @@ Route::prefix('shop')->group(function () {
             Route::put('/submit-offer-update/{id}', [ShopController::class, 'submitOfferUpdate'])->name('shop.appliedJobs.submitOfferUpdate');
 
         });
+        
         // Orders Jobs
         Route::prefix('orders')->group(function () {
 

@@ -104,6 +104,8 @@ class ShopController extends Controller
 
         $appliedJobs = JobListings::latest()->get();
 
+        $appliedJobs = JobListings::with('service')->latest()->get();
+
         $data = compact('title', 'appliedJobs');
 
         return view('shop.applied-jobs.index', $data);
@@ -256,6 +258,41 @@ class ShopController extends Controller
         return redirect()->back()->with('success', 'Offer updated successfully.');
     }
 
+
+    public function acceptOffer(Request $request, $id)
+    {
+        $job = JobListings::findOrFail($id);
+
+        $service = Service::with('serviceMetas')->find($job->service_id);
+
+        $servicePrice = $service?->serviceMetas
+            ->firstWhere('type', 'price')
+            ?->value ?? 0;
+       
+        // try {
+
+        $new = new JobApplications();
+        $new->user_id = $job->user_id ?? null;
+        $new->shop_id = session()->get('shop_id');
+        $new->job_id = $id;
+        $new->technician_id = null;
+        $new->service_id = $service?->id;
+        $new->price = $servicePrice;
+        $new->status = 'accepted';
+        $new->time = $request->time ?? null;
+        $new->warranty = $request->warranty ?? null;
+        $new->warranty_months = $request->warranty_months ?? null;
+        $new->description = $request->description ?? null;
+        $new->save();
+
+        return redirect()->back()->with('success', 'Offer submitted successfully');
+        // } catch (\Throwable $th) {
+        //     return redirect()->back()->with([
+        //         'error' => 'Something went wrong. Please try again later.'
+        //     ]);
+        // }
+    }
+
     // Services
     public function services()
     {
@@ -364,8 +401,7 @@ class ShopController extends Controller
 
         $metas = ServiceMeta::where('services_id', $service->id)->get();
 
-        return view('shop.services.edit', compact( 'title','service', 'metas'));
-
+        return view('shop.services.edit', compact('title', 'service', 'metas'));
     }
 
 
@@ -724,12 +760,19 @@ class ShopController extends Controller
 
         $shopid = session()->get('shop_id');
 
-        $assignedJobs = JobApplications::where('shop_id', $shopid)
+        $assignedJobs = JobApplications::where('shop_id', $shopid)->where('service_id', '==', null)
             ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])
             ->latest()
             ->get();
+        $assignedJobs->load(['jobInfo.service']);
+        
+        $assignedServiceJobs = JobApplications::where('shop_id', $shopid)->where('service_id', '!=', null)
+            ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])
+            ->latest()
+            ->get();
+        $assignedServiceJobs->load(['jobInfo.service']);
 
-        return view('shop.assigned-jobs.index', compact('title', 'assignedJobs'));
+        return view('shop.assigned-jobs.index', compact('title', 'assignedJobs', 'assignedServiceJobs'));
     }
 
     public function assignedJobsCreate($id)

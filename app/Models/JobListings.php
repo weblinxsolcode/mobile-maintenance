@@ -11,6 +11,13 @@ class JobListings extends Model
         return $this->hasMany(JobApplications::class, 'job_id', 'id')->with('priceInfo', 'shopInfo');
     }
 
+
+    public function service()
+    {
+        return $this->belongsTo(Service::class, 'service_id', 'id');
+    }
+
+
     public function userInfo()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
