@@ -558,7 +558,7 @@
             <div>
                 @if ($serviceID->service_id != null)
                 <a href="{{ route('shop.appliedJobs.acceptOffer', $appliedJobs->id) }}" class="btn btn-primary">
-                    <i class="fe fe-check"></i> Accept Offer
+                    <i class="fe fe-check-circle"></i> Accept Offer
                 </a>
                 @elseif ($existingOffer)
                 <button class="btn btn-primary" data-bs-toggle="modal"
