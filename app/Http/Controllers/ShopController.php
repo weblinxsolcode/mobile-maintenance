@@ -986,4 +986,66 @@ class ShopController extends Controller
 
         return redirect()->back()->with('success', 'Model updated successfully');
     }
+
+    public function saveReceipt(Request $request)
+    {
+        $request->validate([
+            'job_application_id' => 'required',
+            'receipt_type' => 'required|in:check_in,final',
+            'customer_signature' => 'required',
+            'receipt_data' => 'required|array',
+        ]);
+
+        $shopId = session()->get('shop_id');
+        $jobApp = JobApplications::where('id', $request->job_application_id)
+            ->where('shop_id', $shopId)
+            ->firstOrFail();
+
+        $shop = shop::findOrFail($shopId);
+
+        $receipt = \App\Models\ReceiptRecord::updateOrCreate(
+            [
+                'job_application_id' => $request->job_application_id,
+                'receipt_type' => $request->receipt_type,
+            ],
+            [
+                'shop_name' => $shop->title ?? 'Mobile Maintenance Shop',
+                'shop_phone' => $request->shop_phone ?? $shop->email ?? 'N/A',
+                'shop_address' => $request->shop_address ?? $shop->address ?? 'Shop Address',
+                'receipt_data' => $request->receipt_data,
+                'customer_signature' => $request->customer_signature,
+                'technician_signature' => $request->technician_signature,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Receipt saved successfully in the system!',
+            'receipt' => $receipt
+        ]);
+    }
+
+    public function getReceipt($job_application_id, $type)
+    {
+        $shopId = session()->get('shop_id');
+        $jobApp = JobApplications::where('id', $job_application_id)
+            ->where('shop_id', $shopId)
+            ->firstOrFail();
+
+        $receipt = \App\Models\ReceiptRecord::where('job_application_id', $job_application_id)
+            ->where('receipt_type', $type)
+            ->first();
+
+        if (!$receipt) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No saved receipt found.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'receipt' => $receipt
+        ]);
+    }
 }

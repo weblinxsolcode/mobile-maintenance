@@ -610,10 +610,26 @@
     <div class="page-wrapper pb-3">
         <div class="content container-fluid">
 
-            {{-- Back --}}
-            <a href="{{ route('shop.appliedJobs.index') }}" class="jd-back">
-                <i class="fe fe-arrow-left"></i> Back to Applied Jobs
-            </a>
+            {{-- Back and Print Buttons Header --}}
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <a href="{{ route('shop.orders.index') }}" class="jd-back mb-0">
+                    <i class="fe fe-arrow-left"></i> Back to Orders
+                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-primary btn-rounded px-3 py-2 fw-semibold" onclick="openPrintModal('check_in')">
+                        <i class="fa fa-print me-1"></i> Print Check-in Receipt
+                    </button>
+                    @if (in_array($appliedJobs->status, ['ready_for_pickup', 'delivered']))
+                        <button class="btn btn-primary btn-rounded px-3 py-2 fw-semibold" onclick="openPrintModal('final')">
+                            <i class="fa fa-print me-1"></i> Print Final Receipt
+                        </button>
+                    @else
+                        <button class="btn btn-primary btn-rounded px-3 py-2 fw-semibold" disabled title="Job status must be Completed (Ready for Pickup / Delivered)">
+                            <i class="fa fa-print me-1"></i> Print Final Receipt
+                        </button>
+                    @endif
+                </div>
+            </div>
 
             {{-- Hero --}}
             <div class="jd-hero">
@@ -816,8 +832,10 @@
                         </table>
                     </div>
                 </div>
-            </div>
         @endif
+
+        {{-- Unified Receipt Printing Panel --}}
+        @include('shop.layout.receipt-printing', ['jobApp' => $appliedJobs])
 
         </div>
     </div>

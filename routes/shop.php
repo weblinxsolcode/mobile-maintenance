@@ -166,5 +166,9 @@ Route::prefix('shop')->group(function () {
 
         // Profile Update
         Route::post('/profile-update/{id}', [ShopController::class, 'profileUpdate'])->name('shop.profile.update');
+
+        // Receipts Routes
+        Route::post('/receipts/save', [ShopController::class, 'saveReceipt'])->name('shop.receipts.save');
+        Route::get('/receipts/get/{job_application_id}/{type}', [ShopController::class, 'getReceipt'])->name('shop.receipts.get');
     });
 });

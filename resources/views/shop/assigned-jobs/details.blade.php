@@ -8,12 +8,26 @@
             <!-- Page Header -->
             <div class="page-header">
                 <div class="row">
-                    <div class="col-sm-12 d-flex align-items-center justify-content-between">
+                    <div class="col-sm-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <h3 class="page-title">{{ $title }}</h3>
-                        <a class="btn btn-primary btn-rounded" href="{{ route('shop.assignedJobs.index') }}">
-                            <i class="fe fe-arrow-left"></i>
-                            Back
-                        </a>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-outline-primary btn-rounded fw-semibold" onclick="openPrintModal('check_in')">
+                                <i class="fa fa-print me-1"></i> Print Check-in Receipt
+                            </button>
+                            @if (in_array($jobApplications->status, ['ready_for_pickup', 'delivered']))
+                                <button class="btn btn-primary btn-rounded fw-semibold" onclick="openPrintModal('final')">
+                                    <i class="fa fa-print me-1"></i> Print Final Receipt
+                                </button>
+                            @else
+                                <button class="btn btn-primary btn-rounded fw-semibold" disabled title="Job status must be Completed (Ready for Pickup / Delivered)">
+                                    <i class="fa fa-print me-1"></i> Print Final Receipt
+                                </button>
+                            @endif
+                            <a class="btn btn-secondary btn-rounded" href="{{ route('shop.assignedJobs.index') }}">
+                                <i class="fe fe-arrow-left"></i>
+                                Back
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -399,4 +413,7 @@
 
         });
     </script>
+    
+    {{-- Unified Receipt Printing Panel --}}
+    @include('shop.layout.receipt-printing', ['jobApp' => $jobApplications])
 @endsection
