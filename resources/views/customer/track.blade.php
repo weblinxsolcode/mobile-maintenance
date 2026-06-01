@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome & Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf Client Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         :root {
@@ -571,7 +573,7 @@
                         @foreach($fData['parts'] as $part)
                             <div class="detail-row" style="padding-left: 15px; background: #fafafb; border-bottom: none; margin-bottom: 2px;">
                                 <span class="detail-label">- {{ $part['name'] }}</span>
-                                <span class="detail-val">${{ number_format($part['price'], 2) }}</span>
+                                <span class="detail-val">{{ env('APP_CURRENCY', 'IQD') }} {{ number_format($part['price'], 2) }}</span>
                             </div>
                         @endforeach
                     @endif
@@ -581,7 +583,7 @@
                             <span class="detail-label">Labor Cost</span>
                             <span class="detail-label-ar">أجور اليد</span>
                         </div>
-                        <span class="detail-val">${{ number_format($fData['labor_cost'] ?? 0, 2) }}</span>
+                        <span class="detail-val">{{ env('APP_CURRENCY', 'IQD') }} {{ number_format($fData['labor_cost'] ?? 0, 2) }}</span>
                     </div>
                     
                     <div class="detail-row" style="background-color: var(--success-light); padding: 10px; border-radius: 8px;">
@@ -590,7 +592,7 @@
                             <span class="detail-label-ar">المجموع النهائي</span>
                         </div>
                         <span class="detail-val text-success fw-bold" style="font-size: 16px;">
-                            ${{ number_format($fData['total_amount'] ?? $job->price, 2) }}
+                            {{ env('APP_CURRENCY', 'IQD') }} {{ number_format($fData['total_amount'] ?? $job->price, 2) }}
                         </span>
                     </div>
 
@@ -612,9 +614,9 @@
                         </div>
                         <span class="detail-val" style="font-size: 15px; color: var(--primary);">
                             @if($checkInReceipt && isset($checkInReceipt->receipt_data['estimated_cost']) && $checkInReceipt->receipt_data['estimated_cost'])
-                                ${{ number_format($checkInReceipt->receipt_data['estimated_cost'], 2) }}
+                                {{ env('APP_CURRENCY', 'IQD') }} {{ number_format($checkInReceipt->receipt_data['estimated_cost'], 2) }}
                             @else
-                                ${{ number_format($job->price ?? 0, 2) }}
+                                {{ env('APP_CURRENCY', 'IQD') }} {{ number_format($job->price ?? 0, 2) }}
                             @endif
                         </span>
                     </div>
@@ -716,6 +718,10 @@
                         <div class="tr-bold">Technician Sign</div>
                     </div>
                 </div>
+                
+                <button type="button" onclick="downloadPDF('vCheckInReceipt', 'check_in_receipt_{{ $job->id }}')" class="btn-pdf-download" style="margin-top: 20px; width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: var(--primary); color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px; transition: all 0.2s;">
+                    <i class="fa fa-file-pdf"></i> Download PDF Receipt
+                </button>
             </div>
             @endif
 
@@ -783,6 +789,10 @@
                         <div class="tr-bold">Customer Signature</div>
                     </div>
                 </div>
+                
+                <button type="button" onclick="downloadPDF('vFinalReceipt', 'final_receipt_{{ $job->id }}')" class="btn-pdf-download" style="margin-top: 20px; width: 100%; padding: 12px; border-radius: 8px; border: none; background-color: var(--success); color: white; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px; transition: all 0.2s;">
+                    <i class="fa fa-file-pdf"></i> Download PDF Invoice
+                </button>
             </div>
             @endif
 
@@ -833,6 +843,29 @@
                 if (btnCheckIn) btnCheckIn.classList.remove('active');
                 if (btnFinal) btnFinal.classList.add('active');
             }
+        }
+
+        function downloadPDF(elementId, filename) {
+            const element = document.getElementById(elementId);
+            const downloadBtn = element.querySelector('.btn-pdf-download');
+            
+            if (downloadBtn) {
+                downloadBtn.style.display = 'none';
+            }
+
+            const opt = {
+                margin:       0.15,
+                filename:     filename + '.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'in', format: [4.2, 7.8], orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                if (downloadBtn) {
+                    downloadBtn.style.display = 'flex';
+                }
+            });
         }
     </script>
 </body>

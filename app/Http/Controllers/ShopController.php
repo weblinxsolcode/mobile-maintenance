@@ -146,11 +146,13 @@ class ShopController extends Controller
     public function submitOffer(Request $request, $id)
     {
         $request->validate([
+            'title' => 'required|string',
             "price" => "required",
             "time" => "required",
             'warranty' => 'required|in:0,1',
             'warranty_months' => 'required_if:warranty,1',
             "description" => "required",
+            'image' => 'nullable|image',
         ]);
 
 
@@ -174,16 +176,24 @@ class ShopController extends Controller
             $new->job_id = $id;
             $new->technician_id = null;
             $new->status = "pending";
+            $new->title = $request->title;
             $new->price = $request->price;
             $new->time = $request->time;
             $new->warranty = $request->warranty;
             $new->warranty_months = $request->warranty_months;
             $new->description = $request->description;
 
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('jobs'), $filename);
+                $new->image = 'jobs/' . $filename;
+            }
+
 
             $title = 'New Job Offer';
             $description = 'You have a new job offer. Please check your Mobile App.';
-            $userID =  $request->user_id;
+            $userID = $request->user_id;
 
             customBlock::generateNotificaions($userID, $title, $description, $this->database);
 
@@ -208,6 +218,16 @@ class ShopController extends Controller
 
     public function submitOfferUpdate(Request $request, $offerId)
     {
+        $request->validate([
+            'title' => 'required|string',
+            "price" => "required",
+            "time" => "required",
+            'warranty' => 'required|in:0,1',
+            'warranty_months' => 'required_if:warranty,1',
+            "description" => "required",
+            'image' => 'nullable|image',
+        ]);
+
         $offer = JobApplications::findOrFail($offerId);
         // Authorize that this shop owns the offer
         if ($offer->shop_id != session()->get('shop_id')) {
@@ -217,14 +237,24 @@ class ShopController extends Controller
         $oldPrice = $offer->price;
         $newPrice = $request->price;
 
-        // Update offer fields
-        $offer->update([
-            'price' => $newPrice,
-            'time' => $request->time,
-            'warranty' => $request->warranty,
-            'warranty_months' => $request->warranty_months,
-            'description' => $request->description,
-        ]);
+        $offer->title = $request->title;
+        $offer->price = $newPrice;
+        $offer->time = $request->time;
+        $offer->warranty = $request->warranty;
+        $offer->warranty_months = $request->warranty_months;
+        $offer->description = $request->description;
+
+        if ($request->hasFile('image')) {
+            if ($offer->image && file_exists(public_path($offer->image))) {
+                unlink(public_path($offer->image));
+            }
+            $file = $request->file('image');
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('jobs'), $filename);
+            $offer->image = 'jobs/' . $filename;
+        }
+
+        $offer->save();
 
         // If price has changed, store history
         if ($oldPrice != $newPrice) {
@@ -261,14 +291,24 @@ class ShopController extends Controller
 
     public function acceptOffer(Request $request, $id)
     {
+        $shopId = session()->get('shop_id');
+        $existing = JobApplications::where('job_id', $id)
+            ->where('shop_id', $shopId)
+            ->where('status', 'accepted')
+            ->first();
+
+        if ($existing) {
+            return redirect()->back()->with('error', 'You have already accepted this offer.');
+        }
+
         $job = JobListings::findOrFail($id);
 
         $service = Service::with('serviceMetas')->find($job->service_id);
 
         $servicePrice = $service?->serviceMetas
             ->firstWhere('type', 'price')
-            ?->value ?? 0;
-       
+                ?->value ?? 0;
+
         // try {
 
         $new = new JobApplications();
@@ -711,6 +751,7 @@ class ShopController extends Controller
         $request->validate([
             'username' => 'required',
             'email' => 'required|email|unique:shops,email,' . $id,
+            'phone_number' => 'nullable|string',
             'password' => 'required',
             'confirm_password' => 'required|same:password',
             'title' => 'required',
@@ -749,6 +790,7 @@ class ShopController extends Controller
             $shop->update([
                 'username' => $request->username,
                 'email' => $request->email,
+                'phone_number' => $request->phone_number,
                 'password' => Hash::make($request->password),
                 'title' => $request->title,
                 'address' => $request->address,
@@ -776,7 +818,7 @@ class ShopController extends Controller
             ->latest()
             ->get();
         $assignedJobs->load(['jobInfo.service']);
-        
+
         $assignedServiceJobs = JobApplications::where('shop_id', $shopid)->where('service_id', '!=', null)
             ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])
             ->latest()
@@ -824,7 +866,7 @@ class ShopController extends Controller
 
         $title = 'Job Status';
         $description = 'Your job status has been updated to: Under Review. Please check the app for more details.';
-        $userID =  $request->user_id;
+        $userID = $request->user_id;
 
         customBlock::generateNotificaions($userID, $title, $description, $this->database);
 
@@ -1047,5 +1089,98 @@ class ShopController extends Controller
             'success' => true,
             'receipt' => $receipt
         ]);
+    }
+
+    public function backupIndex()
+    {
+        $title = "Backup & Restore";
+        $settings = \App\Models\BackupSetting::firstOrCreate(
+            ['shop_id' => session()->get('shop_id')],
+            [
+                'auto_backup' => true,
+                'external_path' => null,
+                'retention_days' => 7,
+            ]
+        );
+
+        $logs = \App\Models\BackupLog::orderBy('created_at', 'desc')->get();
+
+        return view('shop.backup.index', compact('title', 'settings', 'logs'));
+    }
+
+    public function updateBackupSettings(Request $request)
+    {
+        $request->validate([
+            'retention_days' => 'required|integer|min:1|max:365',
+            'external_path' => 'nullable|string',
+        ]);
+
+        $settings = \App\Models\BackupSetting::firstOrCreate(['shop_id' => session()->get('shop_id')]);
+
+        $autoBackup = $request->has('auto_backup') ? true : false;
+        $externalPath = $request->external_path;
+
+        // Perform directory write validation if external path is specified
+        if (!empty($externalPath)) {
+            $extDir = rtrim($externalPath, '/\\');
+            if (!file_exists($extDir) || !is_dir($extDir)) {
+                return redirect()->back()->with('error', 'The external path directory does not exist. Please specify a valid absolute server path.');
+            }
+            if (!is_writable($extDir)) {
+                return redirect()->back()->with('error', 'The external path directory is not writable. Please check system file permissions.');
+            }
+        }
+
+        $settings->update([
+            'auto_backup' => $autoBackup,
+            'external_path' => $externalPath,
+            'retention_days' => $request->retention_days,
+        ]);
+
+        return redirect()->back()->with('success', 'Backup configuration settings updated successfully!');
+    }
+
+    public function runManualBackup()
+    {
+        $backupService = new \App\Services\BackupService();
+        $result = $backupService->run(false); // manual backup
+
+        if ($result['success']) {
+            return redirect()->back()->with('success', "Backup archive '{$result['filename']}' ({$result['size']}) compiled and stored successfully!");
+        } else {
+            return redirect()->back()->with('error', "Backup processing failed: {$result['error']}");
+        }
+    }
+
+    public function downloadBackup($id)
+    {
+        $log = \App\Models\BackupLog::findOrFail($id);
+        $fullPath = storage_path('app/' . $log->path);
+
+        if (!file_exists($fullPath)) {
+            return redirect()->back()->with('error', 'Backup archive file not found on the server.');
+        }
+
+        return response()->download($fullPath, $log->filename);
+    }
+
+    public function deleteBackup($id)
+    {
+        $log = \App\Models\BackupLog::findOrFail($id);
+
+        // Delete local file
+        $localPath = storage_path('app/' . $log->path);
+        if (file_exists($localPath)) {
+            unlink($localPath);
+        }
+
+        // Delete external file if possible
+        if (!empty($log->external_path) && file_exists($log->external_path)) {
+            unlink($log->external_path);
+        }
+
+        $log->delete();
+
+        return redirect()->back()->with('success', 'Backup archive log and storage file successfully deleted.');
     }
 }

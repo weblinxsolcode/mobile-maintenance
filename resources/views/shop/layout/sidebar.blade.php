@@ -42,6 +42,9 @@
                 <li class="{{ Route::is(['shop.profile','shop.profile.update']) ? 'active' : '' }}">
                     <a href="{{ route('shop.profile') }}"><i class="fa fa-user"></i> <span>Profile</span></a>
                 </li>
+                <li class="{{ Route::is(['shop.backups.*']) ? 'active' : '' }}">
+                    <a href="{{ route('shop.backups.index') }}"><i class="fa fa-database"></i> <span>Backup & Restore</span></a>
+                </li>
 
                 
             </ul>

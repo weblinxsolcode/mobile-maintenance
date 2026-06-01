@@ -170,5 +170,14 @@ Route::prefix('shop')->group(function () {
         // Receipts Routes
         Route::post('/receipts/save', [ShopController::class, 'saveReceipt'])->name('shop.receipts.save');
         Route::get('/receipts/get/{job_application_id}/{type}', [ShopController::class, 'getReceipt'])->name('shop.receipts.get');
+
+        // Backup Center Routes
+        Route::prefix('backups')->group(function () {
+            Route::get('/', [ShopController::class, 'backupIndex'])->name('shop.backups.index');
+            Route::post('/settings', [ShopController::class, 'updateBackupSettings'])->name('shop.backups.settings');
+            Route::post('/run', [ShopController::class, 'runManualBackup'])->name('shop.backups.run');
+            Route::get('/download/{id}', [ShopController::class, 'downloadBackup'])->name('shop.backups.download');
+            Route::delete('/delete/{id}', [ShopController::class, 'deleteBackup'])->name('shop.backups.delete');
+        });
     });
 });

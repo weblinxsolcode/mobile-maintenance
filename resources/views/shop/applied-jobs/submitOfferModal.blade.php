@@ -8,9 +8,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="{{ route('shop.appliedJobs.submitOffer', $appliedJobs->id) }}" method="POST">
+                <form action="{{ route('shop.appliedJobs.submitOffer', $appliedJobs->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="user_id" value="{{ $appliedJobs->user_id }}">
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Offer Title</label>
+                        <input type="text" class="form-control" id="title" placeholder="Enter Offer Title (e.g. Premium Screen Replacement)" name="title" required>
+                    </div>
 
                     <div class="mb-3">
                         <div class="row g-3">
@@ -49,6 +54,10 @@
                         <textarea style="height: 100px" class="form-control" placeholder="Enter Description" id="description" name="description"
                             rows="3" required></textarea>
                     </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Offer Image (optional)</label>
+                        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                    </div>
                     <button type="submit" class="btn btn-primary"><i class="fe fe-save"></i>Submit Offer</button>
                 </form>
             </div>
@@ -86,7 +95,7 @@
 
 <div class="modal fade" id="editOfferModal{{ $appliedJobs->id }}" tabindex="-1">
     <div class="modal-dialog">
-        <form action="{{ route('shop.appliedJobs.submitOfferUpdate', $existingOffer->id ?? 0) }}" method="POST">
+        <form action="{{ route('shop.appliedJobs.submitOfferUpdate', $existingOffer->id ?? 0) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             <div class="modal-content">
@@ -95,6 +104,15 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">Offer Title</label>
+                                <input type="text" name="title" class="form-control" placeholder="Enter Offer Title"
+                                    value="{{ $existingOffer->title }}" required>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -147,6 +165,21 @@
                             <div class="mb-3">
                                 <label>Description</label>
                                 <textarea name="description" placeholder="Enter Description" style="height: 100px" class="form-control" rows="3" required>{{ $existingOffer->description }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">Offer Image (optional)</label>
+                                <input type="file" name="image" class="form-control" accept="image/*">
+                                @if($existingOffer->image)
+                                    <div class="mt-2">
+                                        <label class="d-block text-muted small">Current Image:</label>
+                                        <img src="{{ asset($existingOffer->image) }}" class="img-thumbnail" style="max-height: 100px; width: auto;">
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

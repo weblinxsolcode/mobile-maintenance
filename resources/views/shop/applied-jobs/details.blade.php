@@ -556,7 +556,9 @@
 
             @endphp
             <div>
-                @if ($serviceID->service_id != null)
+                @if ($existingOffer && $existingOffer->status == 'accepted')
+                <span class="badge bg-success px-3 py-2 fs-6 fw-semibold"><i class="fe fe-check-circle"></i> Offer Accepted</span>
+                @elseif ($serviceID->service_id != null)
                 <a href="{{ route('shop.appliedJobs.acceptOffer', $appliedJobs->id) }}" class="btn btn-primary">
                     <i class="fe fe-check-circle"></i> Accept Offer
                 </a>
@@ -649,8 +651,12 @@
             <div class="jd-card-body">
                 <table class="jd-info-table">
                     <tr>
+                        <td class="jd-key">Offer Title</td>
+                        <td class="jd-val" style="font-weight: 700; color: #025BA0;">{{ $existingOffer->title ?? 'N/A' }}</td>
+                    </tr>
+                    <tr>
                         <td class="jd-key">Price</td>
-                        <td class="jd-val">${{ number_format($existingOffer->price, 2) }}</td>
+                        <td class="jd-val">{{ env('APP_CURRENCY', 'IQD') }} {{ number_format($existingOffer->price, 2) }}</td>
                     </tr>
                     <tr>
                         <td class="jd-key">Time</td>
@@ -670,6 +676,16 @@
                         <td class="jd-key">Description</td>
                         <td class="jd-val">{{ $existingOffer->description ?? 'N/A' }}</td>
                     </tr>
+                    @if($existingOffer->image)
+                    <tr>
+                        <td class="jd-key">Offer Image</td>
+                        <td class="jd-val">
+                            <a href="{{ asset($existingOffer->image) }}" target="_blank" title="View Full Image">
+                                <img src="{{ asset($existingOffer->image) }}" class="img-thumbnail" style="max-height: 120px; width: auto; border-radius: 8px;">
+                            </a>
+                        </td>
+                    </tr>
+                    @endif
                 </table>
             </div>
         </div>
@@ -696,8 +712,8 @@
                         <tbody>
                             @foreach ($existingOffer->priceHistories as $history)
                             <tr>
-                                <td class="old-price">${{ number_format($history->old_price, 2) }}</td>
-                                <td class="new-price">${{ number_format($history->new_price, 2) }}</td>
+                                <td class="old-price">{{ env('APP_CURRENCY', 'IQD') }} {{ number_format($history->old_price, 2) }}</td>
+                                <td class="new-price">{{ env('APP_CURRENCY', 'IQD') }} {{ number_format($history->new_price, 2) }}</td>
                                 <td class="mod-date">{{ $history->created_at->format('M d, Y \a\t h:i A') }}
                                 </td>
                                 <td class="changed-by">{{ $history->changedByShop->name ?? 'Shop' }}</td>

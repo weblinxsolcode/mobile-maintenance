@@ -657,7 +657,7 @@
             <div class="jd-stats">
                 <div class="jd-stat-card price">
                     <div class="jd-stat-label">Quoted Price</div>
-                    <div class="jd-stat-value">{{ env('APP_CURRENCY') }}{{ $appliedJobs->price ?? '—' }}</div>
+                    <div class="jd-stat-value">{{ env('APP_CURRENCY', 'IQD') }} {{ $appliedJobs->price ?? '—' }}</div>
                 </div>
                 <div class="jd-stat-card time">
                     <div class="jd-stat-label">Estimated Time</div>
@@ -822,8 +822,8 @@
                             <tbody>
                                 @foreach ($appliedJobs->priceHistories as $history)
                                     <tr>
-                                        <td class="old-price">${{ number_format($history->old_price, 2) }}</td>
-                                        <td class="new-price">${{ number_format($history->new_price, 2) }}</td>
+                                        <td class="old-price">{{ env('APP_CURRENCY', 'IQD') }} {{ number_format($history->old_price, 2) }}</td>
+                                        <td class="new-price">{{ env('APP_CURRENCY', 'IQD') }} {{ number_format($history->new_price, 2) }}</td>
                                         <td class="mod-date">{{ $history->created_at->format('M d, Y \a\t h:i A') }}</td>
                                         <td class="changed-by">{{ $history->changedByShop->name ?? 'Shop' }}</td>
                                     </tr>

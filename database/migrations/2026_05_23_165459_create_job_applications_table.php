@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('job_applications', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('service_id')->nullable();
-            $table->foreign('service_id')
-                ->references('id')
-                ->on('services')
-                ->onDelete('cascade');
-            $table->timestamps();
-        });
+        if (!Schema::hasColumn('job_applications', 'service_id')) {
+            Schema::table('job_applications', function (Blueprint $table) {
+                $table->unsignedBigInteger('service_id')->nullable()->after('job_id');
+                $table->foreign('service_id')
+                    ->references('id')
+                    ->on('services')
+                    ->onDelete('cascade');
+            });
+        }
     }
 
     /**
@@ -27,8 +27,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('job_applications', function (Blueprint $table) {
-            $table->dropColumn('service_id');
-        });
+        if (Schema::hasColumn('job_applications', 'service_id')) {
+            Schema::table('job_applications', function (Blueprint $table) {
+                $table->dropForeign(['service_id']);
+                $table->dropColumn('service_id');
+            });
+        }
     }
 };

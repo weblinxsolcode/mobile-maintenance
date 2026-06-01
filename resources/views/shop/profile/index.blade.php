@@ -57,6 +57,11 @@
                                             placeholder="Please enter title" value="{{ $shopInfo->title }}">
                                     </div>
                                     <div class="col-lg-6 form-group">
+                                        <label for="phone_number">Phone Number</label>
+                                        <input type="text" name="phone_number" class="form-control"
+                                            placeholder="Please enter phone number" value="{{ $shopInfo->phone_number }}">
+                                    </div>
+                                    <div class="col-lg-6 form-group">
                                         <label>Address</label>
                                         <input type="text" id="address" name="address"
                                             value="{{ old('address') ?? $shopInfo->address }}" class="form-control"

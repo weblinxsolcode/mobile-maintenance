@@ -1,3 +1,6 @@
+@php
+    $activeShop = \App\Models\shop::find(session()->get('shop_id'));
+@endphp
 {{-- Reusable High-Fidelity ESC/POS Thermal Receipt Printing Modal and Script --}}
 
 <!-- Signature Pad & Processing Libraries -->
@@ -5,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="{{ asset('assets/js/printing-engine.js') }}"></script>
 
 <!-- Custom Styling for Premium Modal & Signatures -->
@@ -267,12 +271,12 @@
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Shop Phone Number</label>
                             <input type="text" class="form-control" id="pmShopPhone"
-                                placeholder="Enter shop phone number" value="0599-123456">
+                                placeholder="Enter shop phone number" value="{{ $activeShop->phone_number ?? '0599-123456' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Shop Address</label>
                             <input type="text" class="form-control" id="pmShopAddress" placeholder="Enter shop address"
-                                value="{{ session()->get('shop_address') ?? '123 Main Street, City Centre' }}">
+                                value="{{ $activeShop->address ?? '123 Main Street, City Centre' }}">
                         </div>
 
                         <!-- Technician Name -->
@@ -428,6 +432,10 @@
                     data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-danger btn-rounded" id="btnEditSignature" style="display: none;"
                     onclick="enableSignatureDrawing()">Edit Signatures</button>
+                <button type="button" class="btn btn-success btn-rounded" id="btnDownloadPDF"
+                    onclick="downloadReceiptPDF()">
+                    <i class="fa fa-file-pdf me-1"></i> Save PDF
+                </button>
                 <button type="button" class="btn btn-primary btn-rounded" id="btnPrintReceiptSubmit"
                     onclick="saveAndPrintReceipt()">
                     <i class="fa fa-print me-1"></i> Save & Direct Print
@@ -442,9 +450,12 @@
     <div class="thermal-receipt" id="receiptTemplate">
         <!-- Shop Details -->
         <div class="tr-center">
-            <div class="tr-shop-name" id="trShopName">{{ session()->get('shop_name') ?? 'MOBILE MAINTENANCE' }}</div>
-            <div id="trShopPhone">Phone: 0599-123456</div>
-            <div id="trShopAddress">Address: 123 Main Street</div>
+            @if($activeShop && $activeShop->profile && file_exists(public_path($activeShop->profile)))
+                <img src="{{ asset($activeShop->profile) }}" style="max-height: 50px; width: auto; object-fit: contain; margin-bottom: 8px; filter: grayscale(100%) contrast(200%);">
+            @endif
+            <div class="tr-shop-name" id="trShopName">{{ $activeShop->title ?? 'MOBILE MAINTENANCE' }}</div>
+            <div id="trShopPhone">Phone: {{ $activeShop->phone_number ?? '0599-123456' }}</div>
+            <div id="trShopAddress">Address: {{ $activeShop->address ?? '123 Main Street' }}</div>
             <div class="tr-title" id="trReceiptTitle">Check-in Receipt</div>
         </div>
 
@@ -496,7 +507,7 @@
             </div>
             <div class="tr-row">
                 <div class="tr-col-label">Estimated Cost:</div>
-                <div class="tr-col-val tr-bold" id="trEstimatedCost">${{ $jobApp->price ?? '0.00' }}</div>
+                <div class="tr-col-val tr-bold" id="trEstimatedCost">{{ env('APP_CURRENCY', 'IQD') }} {{ $jobApp->price ?? '0.00' }}</div>
             </div>
             <div class="tr-bold" style="margin-top: 6px;">Check-in Notes:</div>
             <div style="font-style: italic;" id="trCheckInNotesText">None</div>
@@ -721,20 +732,20 @@
             .replace(':type', type);
 
         // Update connection status bar text based on current connection caching
-        // const statusBar = document.getElementById('printerStatusBar');
-        // const statusText = document.getElementById('printerStatusText');
-        // const btnReconnect = document.getElementById('btnReconnectPrinter');
-        // if (isPrinterConnected()) {
-        //     statusBar.className = 'printer-status-bar connected';
-        //     statusText.innerText = 'Printer Connected & Ready!';
-        //     btnReconnect.innerText = 'Connected';
-        //     btnReconnect.disabled = true;
-        // } else {
-        //     statusBar.className = 'printer-status-bar disconnected';
-        //     statusText.innerText = 'Bluetooth Printer Disconnected';
-        //     btnReconnect.innerText = 'Connect Printer';
-        //     btnReconnect.disabled = false;
-        // }
+        const statusBar = document.getElementById('printerStatusBar');
+        const statusText = document.getElementById('printerStatusText');
+        const btnReconnect = document.getElementById('btnReconnectPrinter');
+        if (isPrinterConnected()) {
+            statusBar.className = 'printer-status-bar connected';
+            statusText.innerText = 'Printer Connected & Ready!';
+            btnReconnect.innerText = 'Connected';
+            btnReconnect.disabled = true;
+        } else {
+            statusBar.className = 'printer-status-bar disconnected';
+            statusText.innerText = 'Bluetooth Printer Disconnected';
+            btnReconnect.innerText = 'Connect Printer';
+            btnReconnect.disabled = false;
+        }
 
         // Show loading state, load from system if exists (Infinite Reprint support!)
         fetch(fetchUrl)
@@ -1165,6 +1176,129 @@
         } finally {
             printBtn.disabled = false;
             printBtn.innerText = loadedReceiptRecord ? 'Direct Reprint' : 'Save & Direct Print';
+        }
+    }
+
+    /**
+     * Compiles and downloads receipt PDF on the client side using html2pdf.js
+     */
+    async function downloadReceiptPDF() {
+        const btnPdf = document.getElementById('btnDownloadPDF');
+        
+        // 1. Verify that the receipt has been saved to the database first
+        if (!loadedReceiptRecord) {
+            const saveFirst = confirm('Please save the receipt to the system database first by clicking "Save & Direct Print". Do you want to save it now?');
+            if (saveFirst) {
+                await saveAndPrintReceipt();
+            }
+            return;
+        }
+
+        btnPdf.disabled = true;
+        btnPdf.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Generating PDF...';
+
+        try {
+            // 2. Populate offscreen HTML receipt DOM with stored data
+            const receipt = loadedReceiptRecord;
+            
+            document.getElementById('trShopPhone').innerText = 'Phone: ' + receipt.shop_phone;
+            document.getElementById('trShopAddress').innerText = 'Address: ' + receipt.shop_address;
+            document.getElementById('trReceiptTitle').innerText = receipt.receipt_type === 'check_in' ? 'Check-in Receipt' : 'Final Receipt';
+
+            const date = new Date(receipt.created_at || new Date());
+            document.getElementById('trDateTime').innerText = date.toLocaleString('en-US', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit', hour12: true
+            });
+
+            const data = receipt.receipt_data;
+            document.getElementById('trTechnicianName').innerText = data.technician_name;
+
+            const cSigImg = document.getElementById('trCustomerSigImg');
+            cSigImg.src = receipt.customer_signature;
+            cSigImg.style.display = 'block';
+
+            const tSigImg = document.getElementById('trTechnicianSigImg');
+            const tSigBox = document.getElementById('trTechnicianSigBox');
+
+            if (receipt.receipt_type === 'check_in') {
+                document.getElementById('trCheckInOnly').style.display = 'block';
+                document.getElementById('trFinalOnly').style.display = 'none';
+
+                document.getElementById('trDeviceCondition').innerText = data.device_condition;
+                document.getElementById('trEstimatedCost').innerText = data.estimated_cost ? ('$' + parseFloat(data.estimated_cost).toFixed(2)) : '—';
+                document.getElementById('trCheckInNotesText').innerText = data.notes || 'None';
+
+                tSigImg.src = receipt.technician_signature;
+                tSigImg.style.display = 'block';
+                tSigBox.style.display = 'block';
+            } else {
+                document.getElementById('trCheckInOnly').style.display = 'none';
+                document.getElementById('trFinalOnly').style.display = 'block';
+
+                document.getElementById('trRepairDetailsText').innerText = data.repair_details;
+                document.getElementById('trLaborCost').innerText = '$' + parseFloat(data.labor_cost).toFixed(2);
+                document.getElementById('trTotalAmount').innerText = '$' + parseFloat(data.total_amount).toFixed(2);
+                document.getElementById('trWarrantyNote').innerText = data.warranty_period || 'No Warranty';
+                tSigBox.style.display = 'none';
+
+                const trPartsBody = document.getElementById('trPartsTableBody');
+                trPartsBody.innerHTML = '';
+                if (data.parts && data.parts.length > 0) {
+                    data.parts.forEach(part => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${part.name}</td>
+                            <td style="text-align: right;">$${parseFloat(part.price).toFixed(2)}</td>
+                        `;
+                        trPartsBody.appendChild(tr);
+                    });
+                } else {
+                    trPartsBody.innerHTML = '<tr><td colspan="2">No hardware parts used.</td></tr>';
+                }
+
+                JsBarcode("#trBarcode", receipt.job_application_id.toString(), {
+                    format: "CODE128",
+                    width: 2,
+                    height: 40,
+                    displayValue: true,
+                    fontSize: 10,
+                    margin: 0
+                });
+            }
+
+            const trackingUrl = `${window.location.origin}/track/${receipt.job_application_id}`;
+            new QRious({
+                element: document.getElementById('trQrcode'),
+                value: trackingUrl,
+                size: 90
+            });
+
+            // Wait for DOM assets
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // 3. Trigger html2pdf conversion
+            const receiptNode = document.getElementById('receiptTemplate');
+            receiptNode.style.display = 'block';
+
+            const opt = {
+                margin:       0.15,
+                filename:     `receipt_${receipt.receipt_type}_job_${receipt.job_application_id}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'in', format: [4.2, 7.8], orientation: 'portrait' }
+            };
+
+            await html2pdf().from(receiptNode).set(opt).save();
+
+            receiptNode.style.display = 'none';
+
+        } catch (err) {
+            console.error(err);
+            alert('PDF Generation failed: ' + err.message);
+        } finally {
+            btnPdf.disabled = false;
+            btnPdf.innerHTML = '<i class="fa fa-file-pdf me-1"></i> Save PDF';
         }
     }
 </script>

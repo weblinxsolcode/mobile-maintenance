@@ -83,7 +83,7 @@
                                                         </h2>
                                                     </td>
                                                     <td>
-                                                        {{ env('APP_CURRENCY') }}{{ $item->price ?? 'N/A' }}
+                                                        {{ env('APP_CURRENCY', 'IQD') }} {{ $item->price ?? 'N/A' }}
                                                     </td>
                                                     <td>
                                                         <span class="fw-bold">Time</span> : {{ $item->time ?? 'N/A' }}
