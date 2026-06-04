@@ -53,6 +53,7 @@ class ShopController extends Controller
             'password' => 'required',
         ]);
 
+
         try {
 
             $checkExisting = shop::where('email', $request->email)->first();

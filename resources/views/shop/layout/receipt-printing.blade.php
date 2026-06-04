@@ -100,14 +100,22 @@
     }
 
     .thermal-receipt {
-        width: 384px;
         background: #fff;
         color: #000;
         font-family: 'Inter', 'Amiri', 'Courier New', monospace;
-        font-size: 13px;
         line-height: 1.4;
         padding: 20px 12px;
         box-sizing: border-box;
+    }
+
+    .thermal-receipt.paper-58mm {
+        width: 384px;
+        font-size: 13px;
+    }
+
+    .thermal-receipt.paper-80mm {
+        width: 576px;
+        font-size: 15px;
     }
 
     .tr-center {
@@ -252,13 +260,34 @@
             </div>
 
             <div class="modal-body print-modal-body">
-                <!-- Printer Connection Status Bar -->
-                <div id="printerStatusBar" class="printer-status-bar disconnected">
-                    <i class="fa fa-circle-notch fa-spin status-spinner" style="display: none;"></i>
-                    <i class="fab fa-bluetooth status-icon"></i>
-                    <span id="printerStatusText">Bluetooth Printer Disconnected</span>
-                    <button class="btn btn-sm btn-outline-dark ms-auto" id="btnReconnectPrinter"
-                        onclick="triggerConnect()">Connect Printer</button>
+                <!-- Printer Connection & Settings Card -->
+                <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; background-color: #f1f5f9;">
+                    <div class="card-body p-3">
+                        <div id="printerStatusBar" class="printer-status-bar disconnected mb-2" style="margin-bottom: 8px;">
+                            <i class="fa fa-circle-notch fa-spin status-spinner" style="display: none;"></i>
+                            <i class="fab fa-bluetooth status-icon"></i>
+                            <span id="printerStatusText" class="fw-bold">Bluetooth Printer Disconnected</span>
+                            <button class="btn btn-sm btn-outline-dark ms-auto" id="btnReconnectPrinter"
+                                onclick="triggerConnect()">Connect</button>
+                        </div>
+                        
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1" for="paperSizeSelect">Paper Size</label>
+                                <select id="paperSizeSelect" class="form-select form-select-sm" onchange="handlePaperSizeChange()">
+                                    <option value="58mm">58mm (Receipt)</option>
+                                    <option value="80mm">80mm (Invoice)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1">&nbsp;</label>
+                                <div class="form-check form-switch mt-1">
+                                    <input class="form-check-input" type="checkbox" id="autoPrintSwitch" onchange="handleAutoPrintChange()">
+                                    <label class="form-check-label small fw-bold" for="autoPrintSwitch">Auto-Open</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Receipt Customization Form -->
@@ -620,7 +649,7 @@
      */
     function initSignaturePads() {
         const cCanvas = document.getElementById('customerSigCanvas');
-        const tCanvas = document.getElementById('customerSigCanvas') ? document.getElementById('technicianSigCanvas') : null;
+        const tCanvas = document.getElementById('technicianSigCanvas');
 
         if (cCanvas) {
             customerSignaturePad = new SignaturePad(cCanvas, {
@@ -665,13 +694,16 @@
         const statusSpinner = statusBar.querySelector('.status-spinner');
         const statusText = document.getElementById('printerStatusText');
         const btnReconnect = document.getElementById('btnReconnectPrinter');
-
         statusBar.className = 'printer-status-bar working';
         statusIcon.style.display = 'none';
         statusSpinner.style.display = 'inline-block';
         statusText.innerText = 'Connecting to Bluetooth...';
 
-        connectPrinter((message, isSuccess) => {
+        connectPrinter(statusUpdateHandler).catch(err => {
+            console.error('Web Bluetooth Connection failed', err);
+        });
+
+        function statusUpdateHandler(message, isSuccess) {
             statusText.innerText = message;
             if (isSuccess === true) {
                 statusBar.className = 'printer-status-bar connected';
@@ -688,10 +720,59 @@
                 btnReconnect.innerText = 'Retry';
                 btnReconnect.disabled = false;
             }
-        }).catch(err => {
-            console.error('Web Bluetooth Connection failed', err);
-        });
+        }
     }
+
+    /**
+     * Populate paired printers in the selection list
+     */
+    // Printer helper functions reverted
+
+    function handlePaperSizeChange() {
+        const sizeSelect = document.getElementById('paperSizeSelect');
+        if (sizeSelect) {
+            const size = sizeSelect.value;
+            localStorage.setItem('printer_paper_size', size);
+            
+            const template = document.getElementById('receiptTemplate');
+            if (template) {
+                template.className = `thermal-receipt paper-${size}`;
+                template.style.width = size === '80mm' ? '576px' : '384px';
+            }
+        }
+    }
+
+    function handleAutoPrintChange() {
+        const autoSwitch = document.getElementById('autoPrintSwitch');
+        if (autoSwitch) {
+            localStorage.setItem('auto_print_on_completion', autoSwitch.checked);
+        }
+    }
+
+    // Set up global event listeners for printing-engine updates
+    window.addEventListener('printerconnected', (e) => {
+        const statusBar = document.getElementById('printerStatusBar');
+        const statusText = document.getElementById('printerStatusText');
+        const btnReconnect = document.getElementById('btnReconnectPrinter');
+        if (statusBar && statusText && btnReconnect) {
+            statusBar.className = 'printer-status-bar connected';
+            statusText.innerText = `Connected: ${e.detail.deviceName}`;
+            btnReconnect.innerText = 'Connected';
+            btnReconnect.disabled = true;
+        }
+    });
+
+    window.addEventListener('printerdisconnected', () => {
+        const statusBar = document.getElementById('printerStatusBar');
+        const statusText = document.getElementById('printerStatusText');
+        const btnReconnect = document.getElementById('btnReconnectPrinter');
+        if (statusBar && statusText && btnReconnect) {
+            statusBar.className = 'printer-status-bar disconnected';
+            statusText.innerText = 'Bluetooth Printer Disconnected';
+            btnReconnect.innerText = 'Connect';
+            btnReconnect.disabled = false;
+        }
+    });
 
     /**
      * Prepares and opens the printing modal.
@@ -725,6 +806,24 @@
         clearSignature('customer');
         clearSignature('technician');
 
+        // Printers loaded
+
+        // Initialize Paper Size & Auto Print Switch from localStorage
+        const savedSize = localStorage.getItem('printer_paper_size') || '58mm';
+        const sizeSelect = document.getElementById('paperSizeSelect');
+        if (sizeSelect) sizeSelect.value = savedSize;
+        
+        const template = document.getElementById('receiptTemplate');
+        if (template) {
+            template.className = `thermal-receipt paper-${savedSize}`;
+            template.style.width = savedSize === '80mm' ? '576px' : '384px';
+        }
+
+        const autoSwitch = document.getElementById('autoPrintSwitch');
+        if (autoSwitch) {
+            autoSwitch.checked = localStorage.getItem('auto_print_on_completion') === 'true';
+        }
+
         // Check if there is already a saved receipt of this type in the database
         const jobId = document.getElementById('pmJobAppId').value;
         const fetchUrl = "{{ route('shop.receipts.get', [':jobId', ':type']) }}"
@@ -735,6 +834,7 @@
         const statusBar = document.getElementById('printerStatusBar');
         const statusText = document.getElementById('printerStatusText');
         const btnReconnect = document.getElementById('btnReconnectPrinter');
+        
         if (isPrinterConnected()) {
             statusBar.className = 'printer-status-bar connected';
             statusText.innerText = 'Printer Connected & Ready!';
@@ -743,8 +843,29 @@
         } else {
             statusBar.className = 'printer-status-bar disconnected';
             statusText.innerText = 'Bluetooth Printer Disconnected';
-            btnReconnect.innerText = 'Connect Printer';
+            btnReconnect.innerText = 'Connect';
             btnReconnect.disabled = false;
+            
+            // Try to auto-reconnect if there's a saved printer ID
+            const savedPrinterId = localStorage.getItem('selected_printer_id');
+            if (savedPrinterId) {
+                statusBar.className = 'printer-status-bar working';
+                statusText.innerText = 'Auto-reconnecting...';
+                connectPrinter(savedPrinterId, (msg, success) => {
+                    statusText.innerText = msg;
+                    if (success) {
+                        statusBar.className = 'printer-status-bar connected';
+                        btnReconnect.innerText = 'Connected';
+                        btnReconnect.disabled = true;
+                    } else if (success === false) {
+                        statusBar.className = 'printer-status-bar disconnected';
+                        btnReconnect.innerText = 'Connect';
+                        btnReconnect.disabled = false;
+                    }
+                }).catch(err => {
+                    console.warn('Auto-reconnect failed', err);
+                });
+            }
         }
 
         // Show loading state, load from system if exists (Infinite Reprint support!)
@@ -1117,36 +1238,45 @@
                 }
 
                 // Render barcode for Job ID
+                const paperSize = localStorage.getItem('printer_paper_size') || '58mm';
+                const barWidth = paperSize === '80mm' ? 3 : 2;
+                const barHeight = paperSize === '80mm' ? 50 : 40;
+                const barFontSize = paperSize === '80mm' ? 12 : 10;
                 JsBarcode("#trBarcode", receipt.job_application_id.toString(), {
                     format: "CODE128",
-                    width: 2,
-                    height: 40,
+                    width: barWidth,
+                    height: barHeight,
                     displayValue: true,
-                    fontSize: 10,
+                    fontSize: barFontSize,
                     margin: 0
                 });
             }
 
             // Render tracking QR Code (Tracking requirement link)
             const trackingUrl = `${window.location.origin}/track/${receipt.job_application_id}`;
+            const paperSize = localStorage.getItem('printer_paper_size') || '58mm';
+            const qrSize = paperSize === '80mm' ? 120 : 90;
             const qr = new QRious({
                 element: document.getElementById('trQrcode'),
                 value: trackingUrl,
-                size: 90
+                size: qrSize
             });
 
             // 2. WAIT FOR IMAGES TO LOAD IN THE DOM BEFORE RASTERIZING
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            // 3. RUN HTML2CANVAS ON THE 58MM TEMPLATE
+            // 3. RUN HTML2CANVAS ON THE TEMPLATE
             const receiptNode = document.getElementById('receiptTemplate');
+            const paperWidth = paperSize === '80mm' ? 576 : 384;
 
             // Set styles explicitly to guarantee white background rasterization
             receiptNode.style.display = 'block';
+            receiptNode.className = `thermal-receipt paper-${paperSize}`;
+            receiptNode.style.width = paperWidth + 'px';
 
             const canvas = await html2canvas(receiptNode, {
-                width: 384,
-                scale: 1, // Standard scaling to output 384px exact width
+                width: paperWidth,
+                scale: 1, // Standard scaling to output exact width
                 logging: false,
                 backgroundColor: '#ffffff'
             });
@@ -1257,21 +1387,27 @@
                     trPartsBody.innerHTML = '<tr><td colspan="2">No hardware parts used.</td></tr>';
                 }
 
+                const paperSize = localStorage.getItem('printer_paper_size') || '58mm';
+                const barWidth = paperSize === '80mm' ? 3 : 2;
+                const barHeight = paperSize === '80mm' ? 50 : 40;
+                const barFontSize = paperSize === '80mm' ? 12 : 10;
                 JsBarcode("#trBarcode", receipt.job_application_id.toString(), {
                     format: "CODE128",
-                    width: 2,
-                    height: 40,
+                    width: barWidth,
+                    height: barHeight,
                     displayValue: true,
-                    fontSize: 10,
+                    fontSize: barFontSize,
                     margin: 0
                 });
             }
 
             const trackingUrl = `${window.location.origin}/track/${receipt.job_application_id}`;
+            const paperSize = localStorage.getItem('printer_paper_size') || '58mm';
+            const qrSize = paperSize === '80mm' ? 120 : 90;
             new QRious({
                 element: document.getElementById('trQrcode'),
                 value: trackingUrl,
-                size: 90
+                size: qrSize
             });
 
             // Wait for DOM assets
@@ -1279,14 +1415,17 @@
 
             // 3. Trigger html2pdf conversion
             const receiptNode = document.getElementById('receiptTemplate');
+            const paperWidth = paperSize === '80mm' ? 576 : 384;
             receiptNode.style.display = 'block';
+            receiptNode.className = `thermal-receipt paper-${paperSize}`;
+            receiptNode.style.width = paperWidth + 'px';
 
             const opt = {
                 margin:       0.15,
                 filename:     `receipt_${receipt.receipt_type}_job_${receipt.job_application_id}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'in', format: [4.2, 7.8], orientation: 'portrait' }
+                jsPDF:        { unit: 'in', format: paperSize === '80mm' ? [6.2, 8.8] : [4.2, 7.8], orientation: 'portrait' }
             };
 
             await html2pdf().from(receiptNode).set(opt).save();

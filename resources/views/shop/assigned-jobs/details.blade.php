@@ -369,9 +369,16 @@
 
                                 // ================= HIDE SECTION IF DELIVERED =================
                                 if (newStatus === 'delivered') {
-        if (statusSection) statusSection.style.display = 'none';
-        toggleActionButtons('delivered');   // Hide reassign & remove buttons
-    }
+                                    if (statusSection) statusSection.style.display = 'none';
+                                    toggleActionButtons('delivered');   // Hide reassign & remove buttons
+                                }
+
+                                // ================= AUTO PRINT ON COMPLETION =================
+                                if (localStorage.getItem('auto_print_on_completion') === 'true' && (newStatus === 'ready_for_pickup' || newStatus === 'delivered')) {
+                                    setTimeout(() => {
+                                        openPrintModal('final');
+                                    }, 1000);
+                                }
 
                                 // ================= SUCCESS MESSAGE =================
                                 messageDiv.innerHTML = `

@@ -16,9 +16,12 @@ const PRINTER_SERVICE_UUIDS = [
     '000018f0-0000-1000-8000-00805f9b34fb', // Standard BLE POS printers
     '00004953-0000-1000-8000-00805f9b34fb', // Qirui/Goojprt POS
     '0000e7e1-0000-1000-8000-00805f9b34fb', // Feasycom BLE
+    '0000ffe0-0000-1000-8000-00805f9b34fb', // Generic BLE serial (HM-10 and similar cheap thermal printers)
     'e7e1',
     '18f0',
-    '4953'
+    '4953',
+    'ffe0',
+    'ffe1'
 ];
 
 /**
@@ -42,30 +45,49 @@ function disconnectPrinter() {
 /**
  * Connects to a Bluetooth thermal printer via Web Bluetooth API.
  * Auto-discovers the write characteristic.
+ * Supports reconnecting to a saved device by ID.
  */
-async function connectPrinter(onStatusChange = () => {}) {
+async function connectPrinter(deviceIdOrOnStatusChange, onStatusChange = () => {}) {
+    let deviceId = null;
+    let statusCallback = onStatusChange;
+    
+    if (typeof deviceIdOrOnStatusChange === 'string') {
+        deviceId = deviceIdOrOnStatusChange;
+    } else if (typeof deviceIdOrOnStatusChange === 'function') {
+        statusCallback = deviceIdOrOnStatusChange;
+    }
+
     if (isPrinterConnected()) {
         return cachedWriteCharacteristic;
     }
 
-    onStatusChange('Scanning for Bluetooth POS printers...');
-
     try {
-        const device = await navigator.bluetooth.requestDevice({
-            acceptAllDevices: true,
-            optionalServices: PRINTER_SERVICE_UUIDS
-        });
+        let device = null;
+        if (deviceId && navigator.bluetooth && typeof navigator.bluetooth.getDevices === 'function') {
+            statusCallback('Reconnecting to saved printer...');
+            const devices = await navigator.bluetooth.getDevices();
+            device = devices.find(d => d.id === deviceId);
+        }
 
-        onStatusChange(`Found: ${device.name || 'POS Printer'}. Connecting...`);
+        if (!device) {
+            statusCallback('Scanning for Bluetooth POS printers...');
+            device = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: PRINTER_SERVICE_UUIDS
+            });
+        }
+
+        statusCallback(`Found: ${device.name || 'POS Printer'}. Connecting...`);
         
         device.addEventListener('gattserverdisconnected', () => {
             cachedBluetoothDevice = null;
             cachedWriteCharacteristic = null;
-            onStatusChange('Printer disconnected.', false);
+            statusCallback('Printer disconnected.', false);
+            window.dispatchEvent(new CustomEvent('printerdisconnected'));
         });
 
         const server = await device.gatt.connect();
-        onStatusChange('Connected! Discovering services...');
+        statusCallback('Connected! Discovering services...');
 
         let service = null;
         for (const uuid of PRINTER_SERVICE_UUIDS) {
@@ -93,7 +115,7 @@ async function connectPrinter(onStatusChange = () => {}) {
             throw new Error('No compatible POS printing services found on this device.');
         }
 
-        onStatusChange('Service found. Discovering write channel...');
+        statusCallback('Service found. Discovering write channel...');
 
         // Find write characteristic
         const characteristics = await service.getCharacteristics();
@@ -113,7 +135,16 @@ async function connectPrinter(onStatusChange = () => {}) {
         cachedBluetoothDevice = device;
         cachedWriteCharacteristic = writeChar;
 
-        onStatusChange('Printer connected & ready!', true);
+        statusCallback('Printer connected & ready!', true);
+        
+        // Save selected printer ID to localStorage
+        localStorage.setItem('selected_printer_id', device.id);
+        
+        // Fire event so UI can listen to it
+        window.dispatchEvent(new CustomEvent('printerconnected', { 
+            detail: { deviceName: device.name || 'POS Printer', deviceId: device.id } 
+        }));
+
         return writeChar;
 
     } catch (error) {
