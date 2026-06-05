@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('shop_services', function (Blueprint $table) {
-            $table->id();
-
-            $table->unsignedBigInteger('services_id');
-            $table->foreign('services_id')->references('id')->on('services')->onDelete('cascade');
-            
-            $table->unsignedBigInteger('shop_id');
-            $table->foreign('shop_id')->references('id')->on('shops')->onDelete('cascade');
-
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('shop_services')) {
+            Schema::create('shop_services', function (Blueprint $table) {
+                $table->id();
+    
+                $table->unsignedBigInteger('services_id');
+                $table->foreign('services_id')->references('id')->on('services')->onDelete('cascade');
+                
+                $table->unsignedBigInteger('shop_id');
+                $table->foreign('shop_id')->references('id')->on('shops')->onDelete('cascade');
+    
+                $table->timestamps();
+            });
+        }
     }
 
     /**

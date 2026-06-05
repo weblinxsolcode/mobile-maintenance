@@ -11,26 +11,28 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('receipt_records', function (Blueprint $table) {
-            $table->id();
-            
-            $table->unsignedBigInteger('job_application_id');
-            $table->foreign('job_application_id')
-                  ->references('id')
-                  ->on('job_applications')
-                  ->onDelete('cascade');
-                  
-            $table->string('receipt_type'); // 'check_in' or 'final'
-            $table->string('shop_name');
-            $table->string('shop_phone')->nullable();
-            $table->text('shop_address')->nullable();
-            $table->json('receipt_data'); // Stores estimated cost, parts list, notes, etc.
-            
-            $table->longText('customer_signature'); // Base64 signature image
-            $table->longText('technician_signature')->nullable(); // Base64 signature image (only for check-in)
-            
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('receipt_records')) {
+            Schema::create('receipt_records', function (Blueprint $table) {
+                $table->id();
+                
+                $table->unsignedBigInteger('job_application_id');
+                $table->foreign('job_application_id')
+                      ->references('id')
+                      ->on('job_applications')
+                      ->onDelete('cascade');
+                      
+                $table->string('receipt_type'); // 'check_in' or 'final'
+                $table->string('shop_name');
+                $table->string('shop_phone')->nullable();
+                $table->text('shop_address')->nullable();
+                $table->json('receipt_data'); // Stores estimated cost, parts list, notes, etc.
+                
+                $table->longText('customer_signature'); // Base64 signature image
+                $table->longText('technician_signature')->nullable(); // Base64 signature image (only for check-in)
+                
+                $table->timestamps();
+            });
+        }
     }
 
     /**

@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('service_metas', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('services_id');
-            $table->foreign('services_id')->references('id')->on('services')->onDelete('cascade');
-            $table->longText('type');
-            $table->longText('value');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('service_metas')) {
+            Schema::create('service_metas', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('services_id');
+                $table->foreign('services_id')->references('id')->on('services')->onDelete('cascade');
+                $table->longText('type');
+                $table->longText('value');
+                $table->timestamps();
+            });
+        }
     }
 
     /**

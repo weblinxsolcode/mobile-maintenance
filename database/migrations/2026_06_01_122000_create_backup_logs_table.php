@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('backup_logs', function (Blueprint $table) {
-            $table->id();
-            $table->string('filename');
-            $table->string('path');
-            $table->string('external_path')->nullable();
-            $table->string('size')->nullable();
-            $table->enum('type', ['manual', 'auto'])->default('manual');
-            $table->enum('status', ['success', 'failed'])->default('success');
-            $table->text('error_message')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('backup_logs')) {
+            Schema::create('backup_logs', function (Blueprint $table) {
+                $table->id();
+                $table->string('filename');
+                $table->string('path');
+                $table->string('external_path')->nullable();
+                $table->string('size')->nullable();
+                $table->enum('type', ['manual', 'auto'])->default('manual');
+                $table->enum('status', ['success', 'failed'])->default('success');
+                $table->text('error_message')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
