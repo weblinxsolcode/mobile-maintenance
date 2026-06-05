@@ -178,6 +178,7 @@ Route::prefix('shop')->group(function () {
             Route::post('/run', [ShopController::class, 'runManualBackup'])->name('shop.backups.run');
             Route::get('/download/{id}', [ShopController::class, 'downloadBackup'])->name('shop.backups.download');
             Route::delete('/delete/{id}', [ShopController::class, 'deleteBackup'])->name('shop.backups.delete');
+            Route::post('/restore/{id}', [ShopController::class, 'restoreBackup'])->name('shop.backups.restore');
         });
     });
 });

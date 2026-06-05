@@ -1184,4 +1184,17 @@ class ShopController extends Controller
 
         return redirect()->back()->with('success', 'Backup archive log and storage file successfully deleted.');
     }
+
+    public function restoreBackup($id)
+    {
+        $backupService = new \App\Services\BackupService();
+        $result = $backupService->restore($id);
+
+        if ($result['success']) {
+            $msg = "System successfully restored from backup! (Safety backup compiled as '{$result['safety_backup']}' in {$result['duration']})";
+            return redirect()->back()->with('success', $msg);
+        } else {
+            return redirect()->back()->with('error', "Restore processing failed: {$result['error']}");
+        }
+    }
 }

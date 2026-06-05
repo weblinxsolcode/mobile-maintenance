@@ -245,4 +245,246 @@ class BackupService
             $log->delete();
         }
     }
+
+    /**
+     * Restore the system from a previous backup.
+     *
+     * @param int $logId
+     * @return array
+     */
+    public function restore(int $logId): array
+    {
+        $startTime = microtime(true);
+        $log = BackupLog::find($logId);
+        if (!$log) {
+            return ['success' => false, 'error' => 'Backup record not found.'];
+        }
+
+        $zipPath = storage_path('app/' . $log->path);
+        
+        // If zip is not available locally, try external
+        if (!file_exists($zipPath)) {
+            if (!empty($log->external_path) && file_exists($log->external_path)) {
+                $backupsDir = storage_path('app/backups');
+                if (!file_exists($backupsDir)) {
+                    mkdir($backupsDir, 0755, true);
+                }
+                copy($log->external_path, $zipPath);
+            } else {
+                return ['success' => false, 'error' => 'Backup ZIP file does not exist on the server.'];
+            }
+        }
+
+        // 1. CREATE SAFETY BACKUP OF THE CURRENT STATE BEFORE OVERWRITING
+        try {
+            $safetyBackup = $this->run(false); // Trigger manual safety backup
+            if (!$safetyBackup['success']) {
+                return [
+                    'success' => false,
+                    'error' => 'Failed to create safety backup prior to restore: ' . $safetyBackup['error']
+                ];
+            }
+            $safetyZipPath = storage_path('app/backups/' . $safetyBackup['filename']);
+        } catch (\Throwable $th) {
+            return [
+                'success' => false,
+                'error' => 'Failed to create safety backup prior to restore: ' . $th->getMessage()
+            ];
+        }
+
+        // 2. RUN RESTORE
+        try {
+            $this->executeRestoreFromZip($zipPath);
+
+            return [
+                'success' => true,
+                'safety_backup' => $safetyBackup['filename'],
+                'duration' => round(microtime(true) - $startTime, 2) . 's'
+            ];
+        } catch (\Throwable $restoreException) {
+            Log::error("Restore failed: " . $restoreException->getMessage() . ". Attempting rollback to safety backup...");
+
+            // 3. ATTEMPT ROLLBACK TO SAFETY BACKUP
+            try {
+                if (file_exists($safetyZipPath)) {
+                    $this->executeRestoreFromZip($safetyZipPath);
+                }
+                $rollbackMsg = "Restore failed: {$restoreException->getMessage()}. Rollback to safety backup completed successfully.";
+            } catch (\Throwable $rollbackException) {
+                Log::critical("CRITICAL: Rollback to safety backup failed: " . $rollbackException->getMessage());
+                $rollbackMsg = "Restore failed: {$restoreException->getMessage()}. CRITICAL: Rollback to safety backup also failed: {$rollbackException->getMessage()}. The safety backup is saved at: {$safetyZipPath}";
+            }
+
+            return [
+                'success' => false,
+                'error' => $rollbackMsg
+            ];
+        }
+    }
+
+    /**
+     * Executes the unzip, database import, folder replacement, and migrations.
+     *
+     * @param string $zipPath
+     * @throws \Exception
+     */
+    protected function executeRestoreFromZip(string $zipPath)
+    {
+        $tempExtractDir = storage_path('app/backups/temp_restore_extract');
+        if (file_exists($tempExtractDir)) {
+            $this->deleteDirectory($tempExtractDir);
+        }
+        mkdir($tempExtractDir, 0755, true);
+
+        // Extract ZIP
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath) !== true) {
+            throw new \Exception("Failed to open backup ZIP archive.");
+        }
+        $zip->extractTo($tempExtractDir);
+        $zip->close();
+
+        // 1. DB RESTORE
+        $sqlFile = $tempExtractDir . '/database_backup.sql';
+        if (!file_exists($sqlFile)) {
+            throw new \Exception("Invalid backup ZIP: database_backup.sql is missing.");
+        }
+
+        $sqlContent = file_get_contents($sqlFile);
+        
+        // Execute SQL import
+        DB::unprepared($sqlContent);
+
+        // 2. FILE DIRECTORIES RESTORE
+        $uploadDirs = [
+            'shops' => public_path('shops'),
+            'jobs' => public_path('jobs'),
+            'userImages' => public_path('userImages'),
+        ];
+
+        $backupDirs = [];
+        try {
+            foreach ($uploadDirs as $name => $targetPath) {
+                $extractedSource = $tempExtractDir . '/uploads/' . $name;
+                
+                // Backup existing directories by renaming
+                $bakPath = $targetPath . '_restore_bak';
+                if (file_exists($targetPath)) {
+                    if (!rename($targetPath, $bakPath)) {
+                        throw new \Exception("Failed to create temporary backup of existing directory: {$name}");
+                    }
+                    $backupDirs[$name] = $bakPath;
+                }
+
+                // Place extracted folders into target path
+                if (file_exists($extractedSource) && is_dir($extractedSource)) {
+                    if (!$this->moveDirectory($extractedSource, $targetPath)) {
+                        throw new \Exception("Failed to restore directory: {$name}");
+                    }
+                } else {
+                    // If directory was not present in the backup, create an empty target directory
+                    if (!file_exists($targetPath)) {
+                        mkdir($targetPath, 0755, true);
+                    }
+                }
+            }
+        } catch (\Throwable $fileEx) {
+            // Rollback directories on exception
+            foreach ($backupDirs as $name => $bakPath) {
+                $targetPath = $uploadDirs[$name];
+                if (file_exists($targetPath)) {
+                    $this->deleteDirectory($targetPath);
+                }
+                rename($bakPath, $targetPath);
+            }
+            throw $fileEx;
+        }
+
+        // Cleanup backup directories on success
+        foreach ($backupDirs as $name => $bakPath) {
+            $this->deleteDirectory($bakPath);
+        }
+
+        // Cleanup extracted files
+        $this->deleteDirectory($tempExtractDir);
+
+        // 3. RUN MIGRATIONS FOR APP UPDATE COMPATIBILITY
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    }
+
+    /**
+     * Recursively delete a directory.
+     *
+     * @param string $dir
+     * @return bool
+     */
+    protected function deleteDirectory(string $dir): bool
+    {
+        if (!file_exists($dir)) {
+            return true;
+        }
+        if (!is_dir($dir)) {
+            return unlink($dir);
+        }
+        foreach (scandir($dir) as $item) {
+            if ($item == '.' || $item == '..') {
+                continue;
+            }
+            if (!$this->deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+                return false;
+            }
+        }
+        return rmdir($dir);
+    }
+
+    /**
+     * Move directory by renaming or fallback to copy+delete.
+     *
+     * @param string $src
+     * @param string $dst
+     * @return bool
+     */
+    protected function moveDirectory(string $src, string $dst): bool
+    {
+        if (file_exists($dst)) {
+            $this->deleteDirectory($dst);
+        }
+        if (rename($src, $dst)) {
+            return true;
+        }
+        if ($this->copyDirectory($src, $dst)) {
+            $this->deleteDirectory($src);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Recursively copy a directory.
+     *
+     * @param string $src
+     * @param string $dst
+     * @return bool
+     */
+    protected function copyDirectory(string $src, string $dst): bool
+    {
+        if (is_dir($src)) {
+            if (!file_exists($dst)) {
+                mkdir($dst, 0755, true);
+            }
+            $files = scandir($src);
+            foreach ($files as $file) {
+                if ($file != "." && $file != "..") {
+                    if (!$this->copyDirectory("$src/$file", "$dst/$file")) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } elseif (file_exists($src)) {
+            return copy($src, $dst);
+        }
+        return false;
+    }
 }
+

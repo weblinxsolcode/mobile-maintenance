@@ -181,6 +181,15 @@
         border-color: #fca5a5;
     }
 
+    .action-btn.restore {
+        color: #059669;
+    }
+
+    .action-btn.restore:hover {
+        background-color: #ecfdf5;
+        border-color: #a7f3d0;
+    }
+
     .btn-backup-trigger {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         border: none;
@@ -422,6 +431,12 @@
                                                         <a href="{{ route('shop.backups.download', $log->id) }}" class="action-btn download" title="Download ZIP Archive">
                                                             <i class="fa fa-download"></i>
                                                         </a>
+                                                        <form action="{{ route('shop.backups.restore', $log->id) }}" method="POST" onsubmit="return confirmRestore(event, '{{ $log->filename }}');">
+                                                            @csrf
+                                                            <button type="submit" class="action-btn restore" title="Restore System State">
+                                                                <i class="fa fa-undo"></i>
+                                                            </button>
+                                                        </form>
                                                     @endif
                                                     <form action="{{ route('shop.backups.delete', $log->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this backup log and its stored storage archive file?');">
                                                         @csrf
@@ -458,6 +473,44 @@
         var btn = document.getElementById('btnRunBackup');
         btn.disabled = true;
         btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Compiling Backup File...';
+    }
+
+    function confirmRestore(event, filename) {
+        var msg = "WARNING: Restoring this backup (" + filename + ") will OVERWRITE all current database tables and uploaded media assets.\n\n" +
+                  "A safety backup of the current state will be created automatically before starting.\n\n" +
+                  "This action is destructive and cannot be undone. Are you absolutely sure you want to proceed?";
+        if (!confirm(msg)) {
+            event.preventDefault();
+            return false;
+        }
+        
+        // Show a loading overlay
+        var overlay = document.createElement('div');
+        overlay.id = 'restore-loading-overlay';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
+        overlay.style.zIndex = '999999';
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.color = '#ffffff';
+        overlay.style.fontFamily = "'Outfit', sans-serif";
+        
+        overlay.innerHTML = `
+            <div style="text-align: center; max-width: 400px; padding: 2rem; background: #1e293b; border-radius: 18px; border: 1px solid #334155; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);">
+                <i class="fa fa-spinner fa-spin" style="font-size: 3rem; color: #10b981; margin-bottom: 1.5rem;"></i>
+                <h4 style="font-weight: 700; margin-bottom: 0.5rem; color: #ffffff;">Restoring System Backup</h4>
+                <p style="font-size: 0.9rem; color: #94a3b8; line-height: 1.5; margin-bottom: 0.5rem;">Please do not close this window, refresh the page, or navigate away.</p>
+                <small style="color: #64748b; font-family: monospace;">Processing database & assets...</small>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        return true;
     }
 </script>
 @endsection
