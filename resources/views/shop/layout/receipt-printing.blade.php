@@ -263,18 +263,21 @@
                 <!-- Printer Connection & Settings Card -->
                 <div class="card border-0 shadow-sm mb-3" style="border-radius: 10px; background-color: #f1f5f9;">
                     <div class="card-body p-3">
-                        <div id="printerStatusBar" class="printer-status-bar disconnected mb-2" style="margin-bottom: 8px;">
+                        <div id="printerStatusBar" class="printer-status-bar disconnected mb-2"
+                            style="margin-bottom: 8px;">
                             <i class="fa fa-circle-notch fa-spin status-spinner" style="display: none;"></i>
                             <i class="fab fa-bluetooth status-icon"></i>
                             <span id="printerStatusText" class="fw-bold">Bluetooth Printer Disconnected</span>
                             <button class="btn btn-sm btn-outline-dark ms-auto" id="btnReconnectPrinter"
                                 onclick="triggerConnect()">Connect</button>
                         </div>
-                        
+
                         <div class="row g-2 align-items-center">
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold text-muted mb-1" for="paperSizeSelect">Paper Size</label>
-                                <select id="paperSizeSelect" class="form-select form-select-sm" onchange="handlePaperSizeChange()">
+                                <label class="form-label small fw-bold text-muted mb-1" for="paperSizeSelect">Paper
+                                    Size</label>
+                                <select id="paperSizeSelect" class="form-select form-select-sm"
+                                    onchange="handlePaperSizeChange()">
                                     <option value="58mm">58mm (Receipt)</option>
                                     <option value="80mm">80mm (Invoice)</option>
                                 </select>
@@ -282,8 +285,10 @@
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold text-muted mb-1">&nbsp;</label>
                                 <div class="form-check form-switch mt-1">
-                                    <input class="form-check-input" type="checkbox" id="autoPrintSwitch" onchange="handleAutoPrintChange()">
-                                    <label class="form-check-label small fw-bold" for="autoPrintSwitch">Auto-Open</label>
+                                    <input class="form-check-input" type="checkbox" id="autoPrintSwitch"
+                                        onchange="handleAutoPrintChange()">
+                                    <label class="form-check-label small fw-bold"
+                                        for="autoPrintSwitch">Auto-Open</label>
                                 </div>
                             </div>
                         </div>
@@ -300,11 +305,13 @@
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Shop Phone Number</label>
                             <input type="text" class="form-control" id="pmShopPhone"
-                                placeholder="Enter shop phone number" value="{{ $activeShop->phone_number ?? '0599-123456' }}">
+                                placeholder="Enter shop phone number"
+                                value="{{ $activeShop->phone_number ?? '0599-123456' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Shop Address</label>
-                            <input type="text" class="form-control" id="pmShopAddress" placeholder="Enter shop address"
+                            <input type="text" class="form-control" id="pmShopAddress"
+                                placeholder="Enter shop address"
                                 value="{{ $activeShop->address ?? '123 Main Street, City Centre' }}">
                         </div>
 
@@ -357,7 +364,8 @@
 
                                 <div class="col-12">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label fw-bold mb-0">Parts Used & Prices (قطع الغيار المستخدمة
+                                        <label class="form-label fw-bold mb-0">Parts Used & Prices (قطع الغيار
+                                            المستخدمة
                                             وأسعارها)</label>
                                         <button type="button" class="btn btn-xs btn-outline-primary"
                                             onclick="addPartRow()">
@@ -401,13 +409,13 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Total Amount Due (المجموع النهائي)</label>
-                                    <input type="text" class="form-control fw-bold text-success" id="pmTotalAmount"
-                                        readonly value="{{ $jobApp->price }}">
+                                    <input type="text" class="form-control fw-bold text-success"
+                                        id="pmTotalAmount" readonly value="{{ $jobApp->price }}">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Warranty Period (فترة الضمان)</label>
                                     <input type="text" class="form-control" id="pmWarrantyNote"
-                                        value="{{ $jobApp->warranty ? ($jobApp->warranty_months . ' Months Warranty') : '3 Days Checking Warranty' }}">
+                                        value="{{ $jobApp->warranty ? $jobApp->warranty_months . ' Months Warranty' : '3 Days Checking Warranty' }}">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-bold">Job Status</label>
@@ -422,7 +430,8 @@
                             <div class="row g-3">
                                 <!-- Customer Signature -->
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold d-flex justify-content-between align-items-center">
+                                    <label
+                                        class="form-label fw-bold d-flex justify-content-between align-items-center">
                                         <span>Customer Signature (توقيع العميل) *</span>
                                         <span class="text-muted small" style="font-size: 10px;">Draw sign inside
                                             box</span>
@@ -432,12 +441,14 @@
                                         <button type="button" class="btn btn-outline-secondary btn-xs sig-btn-clear"
                                             onclick="clearSignature('customer')">Clear</button>
                                     </div>
-                                    <img id="customerSigSavedImg" class="sig-saved-img" alt="Saved Customer Signature">
+                                    <img id="customerSigSavedImg" class="sig-saved-img"
+                                        alt="Saved Customer Signature">
                                 </div>
 
                                 <!-- Technician Signature (Only for Check-in) -->
                                 <div class="col-md-6" id="technicianSigWrapper">
-                                    <label class="form-label fw-bold d-flex justify-content-between align-items-center">
+                                    <label
+                                        class="form-label fw-bold d-flex justify-content-between align-items-center">
                                         <span>Technician Signature (توقيع المستلم) *</span>
                                         <span class="text-muted small" style="font-size: 10px;">Draw sign inside
                                             box</span>
@@ -459,8 +470,8 @@
             <div class="modal-footer bg-light py-3 border-0">
                 <button type="button" class="btn btn-outline-secondary btn-rounded"
                     data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-danger btn-rounded" id="btnEditSignature" style="display: none;"
-                    onclick="enableSignatureDrawing()">Edit Signatures</button>
+                <button type="button" class="btn btn-danger btn-rounded" id="btnEditSignature"
+                    style="display: none;" onclick="enableSignatureDrawing()">Edit Signatures</button>
                 <button type="button" class="btn btn-success btn-rounded" id="btnDownloadPDF"
                     onclick="downloadReceiptPDF()">
                     <i class="fa fa-file-pdf me-1"></i> Save PDF
@@ -479,8 +490,9 @@
     <div class="thermal-receipt" id="receiptTemplate">
         <!-- Shop Details -->
         <div class="tr-center">
-            @if($activeShop && $activeShop->profile && file_exists(public_path($activeShop->profile)))
-                <img src="{{ asset($activeShop->profile) }}" style="max-height: 50px; width: auto; object-fit: contain; margin-bottom: 8px; filter: grayscale(100%) contrast(200%);">
+            @if ($activeShop && $activeShop->profile && file_exists(public_path($activeShop->profile)))
+                <img src="{{ asset($activeShop->profile) }}"
+                    style="max-height: 50px; width: auto; object-fit: contain; margin-bottom: 8px; filter: grayscale(100%) contrast(200%);">
             @endif
             <div class="tr-shop-name" id="trShopName">{{ $activeShop->title ?? 'MOBILE MAINTENANCE' }}</div>
             <div id="trShopPhone">Phone: {{ $activeShop->phone_number ?? '0599-123456' }}</div>
@@ -508,7 +520,7 @@
             <div>Name: <span class="tr-bold" id="trCustomerName">{{ $jobApp->userInfo->full_name ?? 'N/A' }}</span>
             </div>
             <div>Phone: <span class="tr-bold"
-                    id="trCustomerPhone">{{ $jobApp->userInfo->phone ?? $jobApp->jobInfo->phone_number ?? 'N/A' }}</span>
+                    id="trCustomerPhone">{{ $jobApp->userInfo->phone ?? ($jobApp->jobInfo->phone_number ?? 'N/A') }}</span>
             </div>
         </div>
 
@@ -536,7 +548,8 @@
             </div>
             <div class="tr-row">
                 <div class="tr-col-label">Estimated Cost:</div>
-                <div class="tr-col-val tr-bold" id="trEstimatedCost">{{ env('APP_CURRENCY', 'IQD') }} {{ $jobApp->price ?? '0.00' }}</div>
+                <div class="tr-col-val tr-bold" id="trEstimatedCost">{{ env('APP_CURRENCY', 'IQD') }}
+                    {{ $jobApp->price ?? '0.00' }}</div>
             </div>
             <div class="tr-bold" style="margin-top: 6px;">Check-in Notes:</div>
             <div style="font-style: italic;" id="trCheckInNotesText">None</div>
@@ -636,17 +649,140 @@
 
 <!-- ================= CORE MODAL INTERACTIVE JAVASCRIPT ================= -->
 <script>
+    /**
+     * =====================================================================
+     *  FIXED: receipt-modal-fixed.js
+     *  Drop this inside your <script> tag in the Blade partial.
+     *  Fixes:
+     *    1. isPrinterConnected() now reads a single reliable flag.
+     *    2. connectPrinter() is called ONCE and the characteristic is cached.
+     *    3. renderAndSendToPrinter() reuses the cached characteristic — no
+     *       second connectPrinter() call that clears the connected state.
+     *    4. Status bar stays green after a successful connection.
+     * =====================================================================
+     */
+
     let customerSignaturePad = null;
     let technicianSignaturePad = null;
     let loadedReceiptRecord = null;
 
-    document.addEventListener('DOMContentLoaded', function () {
+    /* ── Single source-of-truth for the BT connection ─────────────────── */
+    let _cachedWriteChar = null; // the GATT characteristic we write to
+    let _printerConnected = false; // mirrors the status bar colour
+
+    /** Returns true only when we have a live, usable characteristic. */
+    function isPrinterConnected() {
+        return _printerConnected && _cachedWriteChar !== null;
+    }
+
+    /** Update every visual indicator in one place. */
+    function _setStatus(state, message) {
+        // state: 'connected' | 'disconnected' | 'working'
+        const bar = document.getElementById('printerStatusBar');
+        const text = document.getElementById('printerStatusText');
+        const btn = document.getElementById('btnReconnectPrinter');
+        const spinner = bar.querySelector('.status-spinner');
+        const icon = bar.querySelector('.status-icon');
+
+        if (!bar) return;
+
+        bar.className = `printer-status-bar ${state}`;
+
+        if (text) text.innerText = message;
+        if (spinner) spinner.style.display = state === 'working' ? 'inline-block' : 'none';
+        if (icon) icon.style.display = state !== 'working' ? 'inline-block' : 'none';
+
+        if (btn) {
+            if (state === 'connected') {
+                btn.innerText = 'Connected';
+                btn.disabled = true;
+            } else {
+                btn.innerText = state === 'working' ? 'Connecting…' : 'Connect';
+                btn.disabled = state === 'working';
+            }
+        }
+
+        if (state === 'connected') {
+            _printerConnected = true;
+        } else if (state === 'disconnected') {
+            _printerConnected = false;
+            _cachedWriteChar = null;
+        }
+    }
+
+    /* ── Listen for events fired by printing-engine.js ────────────────── */
+    window.addEventListener('printerconnected', (e) => {
+        _setStatus('connected', `Connected: ${e.detail?.deviceName ?? 'Bluetooth Printer'}`);
+    });
+
+    window.addEventListener('printerdisconnected', () => {
+        _setStatus('disconnected', 'Bluetooth Printer Disconnected');
+    });
+
+    /* ── Connect button handler ────────────────────────────────────────── */
+    async function triggerConnect() {
+        _setStatus('working', 'Connecting to Bluetooth…');
+
+        try {
+            /*
+             * connectPrinter() from printing-engine.js must return the writable
+             * GATT characteristic (or throw on failure).
+             * Pass a status-callback so it can give intermediate messages.
+             */
+            const char = await connectPrinter((msg, ok) => {
+                if (ok === true) {
+                    _cachedWriteChar = char; // set below if resolve; redundant but safe
+                    _setStatus('connected', msg);
+                } else if (ok === false) {
+                    _setStatus('disconnected', msg);
+                } else {
+                    // intermediate / undefined – keep spinner
+                    const bar = document.getElementById('printerStatusBar');
+                    if (bar) bar.className = 'printer-status-bar working';
+                    const text = document.getElementById('printerStatusText');
+                    if (text) text.innerText = msg;
+                }
+            });
+
+            /* connectPrinter resolved → we have the characteristic */
+            if (char) {
+                _cachedWriteChar = char;
+                _printerConnected = true;
+                _setStatus('connected', 'Printer Connected & Ready!');
+                localStorage.setItem('printer_was_connected', '1');
+            }
+
+        } catch (err) {
+            console.error('Web Bluetooth connection failed', err);
+            _setStatus('disconnected', 'Connection failed – try again');
+        }
+    }
+
+    /* ── Auto-reconnect on modal open ──────────────────────────────────── */
+    async function _tryAutoReconnect() {
+        const wasConnected = localStorage.getItem('printer_was_connected') === '1';
+        if (!wasConnected) return;
+
+        _setStatus('working', 'Auto-reconnecting…');
+        try {
+            const char = await connectPrinter(null); // silent reconnect
+            if (char) {
+                _cachedWriteChar = char;
+                _printerConnected = true;
+                _setStatus('connected', 'Printer reconnected!');
+            }
+        } catch {
+            _setStatus('disconnected', 'Bluetooth Printer Disconnected');
+        }
+    }
+
+    /* ================================================================== */
+    /*  DOM READY                                                           */
+    /* ================================================================== */
+    document.addEventListener('DOMContentLoaded', function() {
         initSignaturePads();
     });
 
-    /**
-     * Initializes signature pads on the canvas elements
-     */
     function initSignaturePads() {
         const cCanvas = document.getElementById('customerSigCanvas');
         const tCanvas = document.getElementById('technicianSigCanvas');
@@ -656,10 +792,8 @@
                 backgroundColor: 'rgb(255, 255, 255)',
                 penColor: 'rgb(0, 0, 0)'
             });
-            // Canvas resizing helper
             resizeCanvas(cCanvas);
         }
-
         if (tCanvas) {
             technicianSignaturePad = new SignaturePad(tCanvas, {
                 backgroundColor: 'rgb(255, 255, 255)',
@@ -670,113 +804,39 @@
     }
 
     function resizeCanvas(canvas) {
-        // Adjust canvas resolution dynamically to match client visual boundaries
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
         canvas.width = canvas.offsetWidth * ratio;
         canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext("2d").scale(ratio, ratio);
+        canvas.getContext('2d').scale(ratio, ratio);
     }
 
     function clearSignature(type) {
-        if (type === 'customer' && customerSignaturePad) {
-            customerSignaturePad.clear();
-        } else if (type === 'technician' && technicianSignaturePad) {
-            technicianSignaturePad.clear();
-        }
+        if (type === 'customer' && customerSignaturePad) customerSignaturePad.clear();
+        if (type === 'technician' && technicianSignaturePad) technicianSignaturePad.clear();
     }
 
-    /**
-     * Connect printer event status updates
-     */
-    function triggerConnect() {
-        const statusBar = document.getElementById('printerStatusBar');
-        const statusIcon = statusBar.querySelector('.status-icon');
-        const statusSpinner = statusBar.querySelector('.status-spinner');
-        const statusText = document.getElementById('printerStatusText');
-        const btnReconnect = document.getElementById('btnReconnectPrinter');
-        statusBar.className = 'printer-status-bar working';
-        statusIcon.style.display = 'none';
-        statusSpinner.style.display = 'inline-block';
-        statusText.innerText = 'Connecting to Bluetooth...';
-
-        connectPrinter(statusUpdateHandler).catch(err => {
-            console.error('Web Bluetooth Connection failed', err);
-        });
-
-        function statusUpdateHandler(message, isSuccess) {
-            statusText.innerText = message;
-            if (isSuccess === true) {
-                statusBar.className = 'printer-status-bar connected';
-                statusIcon.className = 'fa fa-bluetooth-b status-icon';
-                statusIcon.style.display = 'inline-block';
-                statusSpinner.style.display = 'none';
-                btnReconnect.innerText = 'Connected';
-                btnReconnect.disabled = true;
-            } else if (isSuccess === false) {
-                statusBar.className = 'printer-status-bar disconnected';
-                statusIcon.className = 'fa fa-bluetooth status-icon';
-                statusIcon.style.display = 'inline-block';
-                statusSpinner.style.display = 'none';
-                btnReconnect.innerText = 'Retry';
-                btnReconnect.disabled = false;
-            }
-        }
-    }
-
-    /**
-     * Populate paired printers in the selection list
-     */
-    // Printer helper functions reverted
-
+    /* ================================================================== */
+    /*  PAPER SIZE / AUTO-PRINT SETTINGS                                   */
+    /* ================================================================== */
     function handlePaperSizeChange() {
-        const sizeSelect = document.getElementById('paperSizeSelect');
-        if (sizeSelect) {
-            const size = sizeSelect.value;
-            localStorage.setItem('printer_paper_size', size);
-            
-            const template = document.getElementById('receiptTemplate');
-            if (template) {
-                template.className = `thermal-receipt paper-${size}`;
-                template.style.width = size === '80mm' ? '576px' : '384px';
-            }
+        const size = document.getElementById('paperSizeSelect')?.value;
+        if (!size) return;
+        localStorage.setItem('printer_paper_size', size);
+        const template = document.getElementById('receiptTemplate');
+        if (template) {
+            template.className = `thermal-receipt paper-${size}`;
+            template.style.width = size === '80mm' ? '576px' : '384px';
         }
     }
 
     function handleAutoPrintChange() {
-        const autoSwitch = document.getElementById('autoPrintSwitch');
-        if (autoSwitch) {
-            localStorage.setItem('auto_print_on_completion', autoSwitch.checked);
-        }
+        const checked = document.getElementById('autoPrintSwitch')?.checked;
+        localStorage.setItem('auto_print_on_completion', checked);
     }
 
-    // Set up global event listeners for printing-engine updates
-    window.addEventListener('printerconnected', (e) => {
-        const statusBar = document.getElementById('printerStatusBar');
-        const statusText = document.getElementById('printerStatusText');
-        const btnReconnect = document.getElementById('btnReconnectPrinter');
-        if (statusBar && statusText && btnReconnect) {
-            statusBar.className = 'printer-status-bar connected';
-            statusText.innerText = `Connected: ${e.detail.deviceName}`;
-            btnReconnect.innerText = 'Connected';
-            btnReconnect.disabled = true;
-        }
-    });
-
-    window.addEventListener('printerdisconnected', () => {
-        const statusBar = document.getElementById('printerStatusBar');
-        const statusText = document.getElementById('printerStatusText');
-        const btnReconnect = document.getElementById('btnReconnectPrinter');
-        if (statusBar && statusText && btnReconnect) {
-            statusBar.className = 'printer-status-bar disconnected';
-            statusText.innerText = 'Bluetooth Printer Disconnected';
-            btnReconnect.innerText = 'Connect';
-            btnReconnect.disabled = false;
-        }
-    });
-
-    /**
-     * Prepares and opens the printing modal.
-     */
+    /* ================================================================== */
+    /*  OPEN MODAL                                                          */
+    /* ================================================================== */
     function openPrintModal(type) {
         const modalEl = document.getElementById('receiptPrintModal');
         const titleText = document.getElementById('printModalTitle').querySelector('span');
@@ -785,34 +845,29 @@
         typeInput.value = type;
         loadedReceiptRecord = null;
 
-        // Reset visibility of config blocks
         if (type === 'check_in') {
             titleText.innerText = 'Print Check-in Receipt (استلام الجهاز)';
             document.getElementById('checkInFieldsOnly').style.display = 'block';
             document.getElementById('finalFieldsOnly').style.display = 'none';
             document.getElementById('technicianSigWrapper').style.display = 'block';
-            document.getElementById('btnPrintReceiptSubmit').innerText = 'Save & Direct Print';
         } else {
             titleText.innerText = 'Print Final Receipt (بعد الصيانة)';
             document.getElementById('checkInFieldsOnly').style.display = 'none';
             document.getElementById('finalFieldsOnly').style.display = 'block';
             document.getElementById('technicianSigWrapper').style.display = 'none';
-            document.getElementById('btnPrintReceiptSubmit').innerText = 'Save & Direct Print';
         }
+        document.getElementById('btnPrintReceiptSubmit').innerText = 'Save & Direct Print';
 
-        // Reset form & pads
         document.getElementById('receiptConfigForm').reset();
         enableSignatureDrawing();
         clearSignature('customer');
         clearSignature('technician');
 
-        // Printers loaded
-
-        // Initialize Paper Size & Auto Print Switch from localStorage
+        /* Restore paper-size & auto-print preferences */
         const savedSize = localStorage.getItem('printer_paper_size') || '58mm';
         const sizeSelect = document.getElementById('paperSizeSelect');
         if (sizeSelect) sizeSelect.value = savedSize;
-        
+
         const template = document.getElementById('receiptTemplate');
         if (template) {
             template.className = `thermal-receipt paper-${savedSize}`;
@@ -820,87 +875,48 @@
         }
 
         const autoSwitch = document.getElementById('autoPrintSwitch');
-        if (autoSwitch) {
-            autoSwitch.checked = localStorage.getItem('auto_print_on_completion') === 'true';
+        if (autoSwitch) autoSwitch.checked = localStorage.getItem('auto_print_on_completion') === 'true';
+
+        /* ── Reflect current connection state immediately ──────────────── */
+        if (isPrinterConnected()) {
+            _setStatus('connected', 'Printer Connected & Ready!');
+        } else {
+            _setStatus('disconnected', 'Bluetooth Printer Disconnected');
+            /* Attempt silent auto-reconnect in background */
+            _tryAutoReconnect();
         }
 
-        // Check if there is already a saved receipt of this type in the database
+        /* ── Load saved receipt from server if it exists ───────────────── */
         const jobId = document.getElementById('pmJobAppId').value;
         const fetchUrl = "{{ route('shop.receipts.get', [':jobId', ':type']) }}"
             .replace(':jobId', jobId)
             .replace(':type', type);
 
-        // Update connection status bar text based on current connection caching
-        const statusBar = document.getElementById('printerStatusBar');
-        const statusText = document.getElementById('printerStatusText');
-        const btnReconnect = document.getElementById('btnReconnectPrinter');
-        
-        if (isPrinterConnected()) {
-            statusBar.className = 'printer-status-bar connected';
-            statusText.innerText = 'Printer Connected & Ready!';
-            btnReconnect.innerText = 'Connected';
-            btnReconnect.disabled = true;
-        } else {
-            statusBar.className = 'printer-status-bar disconnected';
-            statusText.innerText = 'Bluetooth Printer Disconnected';
-            btnReconnect.innerText = 'Connect';
-            btnReconnect.disabled = false;
-            
-            // Try to auto-reconnect if there's a saved printer ID
-            const savedPrinterId = localStorage.getItem('selected_printer_id');
-            if (savedPrinterId) {
-                statusBar.className = 'printer-status-bar working';
-                statusText.innerText = 'Auto-reconnecting...';
-                connectPrinter(savedPrinterId, (msg, success) => {
-                    statusText.innerText = msg;
-                    if (success) {
-                        statusBar.className = 'printer-status-bar connected';
-                        btnReconnect.innerText = 'Connected';
-                        btnReconnect.disabled = true;
-                    } else if (success === false) {
-                        statusBar.className = 'printer-status-bar disconnected';
-                        btnReconnect.innerText = 'Connect';
-                        btnReconnect.disabled = false;
-                    }
-                }).catch(err => {
-                    console.warn('Auto-reconnect failed', err);
-                });
-            }
-        }
-
-        // Show loading state, load from system if exists (Infinite Reprint support!)
         fetch(fetchUrl)
-            .then(res => {
-                if (res.ok) return res.json();
-                return null;
-            })
+            .then(res => res.ok ? res.json() : null)
             .then(data => {
-                if (data && data.success) {
+                if (data?.success) {
                     loadedReceiptRecord = data.receipt;
                     prefillSavedReceipt(data.receipt);
                 }
-
-                // Show modal
                 const modal = new bootstrap.Modal(modalEl);
                 modal.show();
-
-                // Timeout to trigger pad redraw after canvas transitions
                 setTimeout(() => {
                     if (customerSignaturePad) resizeCanvas(document.getElementById('customerSigCanvas'));
-                    if (technicianSignaturePad) resizeCanvas(document.getElementById('technicianSigCanvas'));
+                    if (technicianSignaturePad) resizeCanvas(document.getElementById(
+                    'technicianSigCanvas'));
                 }, 400);
             })
             .catch(err => {
                 console.error(err);
-                // Fail-safe show
                 const modal = new bootstrap.Modal(modalEl);
                 modal.show();
             });
     }
 
-    /**
-     * Prefills the modal if a receipt was already archived in the database
-     */
+    /* ================================================================== */
+    /*  PREFILL / SIGNATURE HELPERS                                         */
+    /* ================================================================== */
     function prefillSavedReceipt(receipt) {
         document.getElementById('pmShopPhone').value = receipt.shop_phone;
         document.getElementById('pmShopAddress').value = receipt.shop_address;
@@ -918,17 +934,16 @@
             document.getElementById('pmTotalAmount').value = data.total_amount || '';
             document.getElementById('pmWarrantyNote').value = data.warranty_period || '';
 
-            // Prefill parts list
             const partsBody = document.getElementById('partsTableBody');
             partsBody.innerHTML = '';
-            if (data.parts && data.parts.length > 0) {
+            if (data.parts?.length) {
                 data.parts.forEach(part => {
                     const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><input type="text" class="form-control form-control-sm part-name" value="${part.name}"></td>
-                        <td><input type="number" class="form-control form-control-sm part-price" value="${part.price}" oninput="calculateTotalAmount()"></td>
-                        <td class="text-center"><button type="button" class="btn btn-link text-danger p-0" onclick="removePartRow(this)"><i class="fa fa-trash"></i></button></td>
-                    `;
+                    row.innerHTML =
+                        `
+                    <td><input type="text"   class="form-control form-control-sm part-name"  value="${part.name}"></td>
+                    <td><input type="number" class="form-control form-control-sm part-price" value="${part.price}" oninput="calculateTotalAmount()"></td>
+                    <td class="text-center"><button type="button" class="btn btn-link text-danger p-0" onclick="removePartRow(this)"><i class="fa fa-trash"></i></button></td>`;
                     partsBody.appendChild(row);
                 });
             } else {
@@ -936,7 +951,6 @@
             }
         }
 
-        // Show signatures as read-only image previews
         disableSignatureDrawing(receipt.customer_signature, receipt.technician_signature);
         document.getElementById('btnPrintReceiptSubmit').innerText = 'Direct Reprint';
     }
@@ -944,8 +958,8 @@
     function disableSignatureDrawing(cSigUrl = null, tSigUrl = null) {
         const customerImg = document.getElementById('customerSigSavedImg');
         const customerCont = document.getElementById('customerSigContainer');
-        const technicianImg = document.getElementById('technicianSigSavedImg');
-        const technicianCont = document.getElementById('technicianSigContainer');
+        const techImg = document.getElementById('technicianSigSavedImg');
+        const techCont = document.getElementById('technicianSigContainer');
         const btnEdit = document.getElementById('btnEditSignature');
 
         if (cSigUrl) {
@@ -954,13 +968,14 @@
             customerCont.style.display = 'none';
         }
 
-        if (tSigUrl && document.getElementById('pmReceiptType').value === 'check_in') {
-            technicianImg.src = tSigUrl;
-            technicianImg.style.display = 'block';
-            technicianCont.style.display = 'none';
+        const type = document.getElementById('pmReceiptType').value;
+        if (tSigUrl && type === 'check_in') {
+            techImg.src = tSigUrl;
+            techImg.style.display = 'block';
+            techCont.style.display = 'none';
         } else {
-            technicianCont.style.display = 'none';
-            technicianImg.style.display = 'none';
+            techCont.style.display = 'none';
+            techImg.style.display = 'none';
         }
 
         btnEdit.style.display = 'inline-block';
@@ -981,7 +996,6 @@
         document.getElementById('btnEditSignature').style.display = 'none';
         document.getElementById('btnPrintReceiptSubmit').innerText = 'Save & Direct Print';
 
-        // Redraw sizes
         setTimeout(() => {
             if (customerSignaturePad) {
                 customerSignaturePad.clear();
@@ -994,47 +1008,42 @@
         }, 100);
     }
 
-    /**
-     * DYNAMIC PARTS ADD/REMOVE FOR FINAL RECEIPT
-     */
+    /* ================================================================== */
+    /*  PARTS TABLE HELPERS                                                 */
+    /* ================================================================== */
     function addPartRow() {
         const tbody = document.getElementById('partsTableBody');
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><input type="text" class="form-control form-control-sm part-name" placeholder="Part Name"></td>
-            <td><input type="number" class="form-control form-control-sm part-price" value="0" oninput="calculateTotalAmount()" placeholder="Price"></td>
-            <td class="text-center"><button type="button" class="btn btn-link text-danger p-0" onclick="removePartRow(this)"><i class="fa fa-trash"></i></button></td>
-        `;
+        tr.innerHTML =
+            `
+        <td><input type="text"   class="form-control form-control-sm part-name"  placeholder="Part Name"></td>
+        <td><input type="number" class="form-control form-control-sm part-price" value="0" oninput="calculateTotalAmount()" placeholder="Price"></td>
+        <td class="text-center"><button type="button" class="btn btn-link text-danger p-0" onclick="removePartRow(this)"><i class="fa fa-trash"></i></button></td>`;
         tbody.appendChild(tr);
     }
 
     function removePartRow(button) {
-        const row = button.closest('tr');
-        row.remove();
+        button.closest('tr').remove();
         calculateTotalAmount();
     }
 
     function calculateTotalAmount() {
-        const prices = document.querySelectorAll('.part-price');
         let total = 0;
-        prices.forEach(input => {
+        document.querySelectorAll('.part-price').forEach(input => {
             total += parseFloat(input.value) || 0;
         });
-
-        const labor = parseFloat(document.getElementById('pmLaborCost').value) || 0;
-        total += labor;
-
+        total += parseFloat(document.getElementById('pmLaborCost').value) || 0;
         document.getElementById('pmTotalAmount').value = total.toFixed(2);
     }
 
-    /**
-     * SAVE TO DATABASE AND INITIATE PRINTER GRAPHICS STREAM
-     */
+    /* ================================================================== */
+    /*  SAVE & PRINT                                                        */
+    /* ================================================================== */
     async function saveAndPrintReceipt() {
         const jobId = document.getElementById('pmJobAppId').value;
         const type = document.getElementById('pmReceiptType').value;
         const shopPhone = document.getElementById('pmShopPhone').value;
-        const shopAddress = document.getElementById('pmShopAddress').value;
+        const shopAddr = document.getElementById('pmShopAddress').value;
         const techName = document.getElementById('pmTechnicianName').value;
 
         if (!techName) {
@@ -1042,14 +1051,13 @@
             return;
         }
 
-        // Get Signatures
+        /* ── Collect signatures ──────────────────────────────────────── */
         let customerSigUrl = '';
         let technicianSigUrl = '';
 
         const customerImg = document.getElementById('customerSigSavedImg');
         const technicianImg = document.getElementById('technicianSigSavedImg');
 
-        // Check if using saved signature or drawing a new one
         if (customerImg.style.display === 'block') {
             customerSigUrl = customerImg.src;
         } else {
@@ -1072,7 +1080,7 @@
             }
         }
 
-        // Package receipt details
+        /* ── Build receipt payload ───────────────────────────────────── */
         let receiptData = {
             technician_name: techName
         };
@@ -1087,221 +1095,138 @@
             receiptData.total_amount = document.getElementById('pmTotalAmount').value;
             receiptData.warranty_period = document.getElementById('pmWarrantyNote').value;
 
-            // Build parts array
             const parts = [];
-            const partRows = document.querySelectorAll('#partsTableBody tr');
-            partRows.forEach(row => {
+            document.querySelectorAll('#partsTableBody tr').forEach(row => {
                 const name = row.querySelector('.part-name').value;
                 const price = parseFloat(row.querySelector('.part-price').value) || 0;
-                if (name) {
-                    parts.push({ name, price });
-                }
+                if (name) parts.push({
+                    name,
+                    price
+                });
             });
             receiptData.parts = parts;
         }
 
-        // Show connection warning if printer is not connected
+        /* ── Offer to connect printer if not already connected ──────── */
         if (!isPrinterConnected()) {
-            const connectNow = confirm('Bluetooth printer is not connected yet. Connect and print now?');
+            const connectNow = confirm('Bluetooth printer is not connected. Connect and print now?');
             if (connectNow) {
+                _setStatus('working', 'Connecting…');
                 try {
-                    await connectPrinter((msg, ok) => {
-                        const statusBar = document.getElementById('printerStatusBar');
-                        const text = document.getElementById('printerStatusText');
-                        text.innerText = msg;
-                        statusBar.className = ok === true ? 'printer-status-bar connected' : (ok === false ? 'printer-status-bar disconnected' : 'printer-status-bar working');
+                    const char = await connectPrinter((msg, ok) => {
+                        if (ok === true) _setStatus('connected', msg);
+                        else if (ok === false) _setStatus('disconnected', msg);
                     });
+                    if (char) {
+                        _cachedWriteChar = char;
+                        _printerConnected = true;
+                        _setStatus('connected', 'Printer Connected & Ready!');
+                        localStorage.setItem('printer_was_connected', '1');
+                    }
                 } catch (e) {
-                    alert('Printer connection cancelled or failed. The receipt will still be saved in the system, but not printed.');
+                    _setStatus('disconnected', 'Connection cancelled / failed');
+                    alert('Printer connection failed. The receipt will still be saved, but not printed.');
                 }
             }
         }
 
-        // Save receipt to server database (System copying requirement)
+        /* ── Save to server ──────────────────────────────────────────── */
         const saveBtn = document.getElementById('btnPrintReceiptSubmit');
         saveBtn.disabled = true;
-        saveBtn.innerHTML = '<i class="fa fa-circle-notch fa-spin me-1"></i> Saving receipt...';
+        saveBtn.innerHTML = '<i class="fa fa-circle-notch fa-spin me-1"></i> Saving receipt…';
 
         fetch("{{ route('shop.receipts.save') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({
-                job_application_id: jobId,
-                receipt_type: type,
-                shop_phone: shopPhone,
-                shop_address: shopAddress,
-                customer_signature: customerSigUrl,
-                technician_signature: technicianSigUrl,
-                receipt_data: receiptData
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    job_application_id: jobId,
+                    receipt_type: type,
+                    shop_phone: shopPhone,
+                    shop_address: shopAddr,
+                    customer_signature: customerSigUrl,
+                    technician_signature: technicianSigUrl,
+                    receipt_data: receiptData
+                })
             })
-        })
             .then(res => res.json())
             .then(async response => {
                 if (response.success) {
-                    // Instantly update loaded state
                     loadedReceiptRecord = response.receipt;
                     disableSignatureDrawing(customerSigUrl, technicianSigUrl);
                     saveBtn.innerText = 'Direct Reprint';
 
-                    // Trigger Direct printing stream
                     if (isPrinterConnected()) {
                         await renderAndSendToPrinter(response.receipt);
                     } else {
-                        alert('Receipt saved successfully in the system! Connect printer to print.');
+                        alert('Receipt saved! Connect the printer to print.');
                     }
                 } else {
-                    alert('Database saving failed: ' + response.message);
+                    alert('Save failed: ' + response.message);
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert('Something went wrong while saving the receipt to the system.');
+                alert('Something went wrong while saving the receipt.');
             })
             .finally(() => {
                 saveBtn.disabled = false;
             });
     }
 
-    /**
-     * Renders CSS styled Offscreen HTML receipt, rasterizes to Canvas and prints.
-     */
+    /* ================================================================== */
+    /*  RENDER & SEND TO PRINTER                                            */
+    /*  KEY FIX: reuses _cachedWriteChar — NO second connectPrinter() call */
+    /* ================================================================== */
     async function renderAndSendToPrinter(receipt) {
-        const statusBar = document.getElementById('printerStatusBar');
-        const statusText = document.getElementById('printerStatusText');
         const printBtn = document.getElementById('btnPrintReceiptSubmit');
-
         printBtn.disabled = true;
-        printBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Rasterizing...';
+        printBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Rasterizing…';
 
         try {
-            // 1. POPULATE OFFSCREEN HTML RECEIPT TEMPLATE WITH DATABASE DATA
-            document.getElementById('trShopPhone').innerText = 'Phone: ' + receipt.shop_phone;
-            document.getElementById('trShopAddress').innerText = 'Address: ' + receipt.shop_address;
-            document.getElementById('trReceiptTitle').innerText = receipt.receipt_type === 'check_in' ? 'Check-in Receipt' : 'Final Receipt';
+            /* 1. Populate offscreen receipt DOM */
+            _populateReceiptTemplate(receipt);
 
-            // Format current date & time elegantly
-            const date = new Date(receipt.created_at || new Date());
-            document.getElementById('trDateTime').innerText = date.toLocaleString('en-US', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit', hour12: true
-            });
+            /* 2. Give images time to load */
+            await new Promise(r => setTimeout(r, 300));
 
-            const data = receipt.receipt_data;
-            document.getElementById('trTechnicianName').innerText = data.technician_name;
-
-            // Load signatures inside offscreen DOM
-            const cSigImg = document.getElementById('trCustomerSigImg');
-            cSigImg.src = receipt.customer_signature;
-            cSigImg.style.display = 'block';
-
-            const tSigImg = document.getElementById('trTechnicianSigImg');
-            const tSigBox = document.getElementById('trTechnicianSigBox');
-
-            if (receipt.receipt_type === 'check_in') {
-                document.getElementById('trCheckInOnly').style.display = 'block';
-                document.getElementById('trFinalOnly').style.display = 'none';
-
-                document.getElementById('trDeviceCondition').innerText = data.device_condition;
-                document.getElementById('trEstimatedCost').innerText = data.estimated_cost ? ('$' + parseFloat(data.estimated_cost).toFixed(2)) : '—';
-                document.getElementById('trCheckInNotesText').innerText = data.notes || 'None';
-
-                tSigImg.src = receipt.technician_signature;
-                tSigImg.style.display = 'block';
-                tSigBox.style.display = 'block';
-            } else {
-                document.getElementById('trCheckInOnly').style.display = 'none';
-                document.getElementById('trFinalOnly').style.display = 'block';
-
-                document.getElementById('trRepairDetailsText').innerText = data.repair_details;
-                document.getElementById('trLaborCost').innerText = '$' + parseFloat(data.labor_cost).toFixed(2);
-                document.getElementById('trTotalAmount').innerText = '$' + parseFloat(data.total_amount).toFixed(2);
-                document.getElementById('trWarrantyNote').innerText = data.warranty_period || 'No Warranty';
-                tSigBox.style.display = 'none'; // No technician sign in final receipt
-
-                // Populate parts table rows
-                const trPartsBody = document.getElementById('trPartsTableBody');
-                trPartsBody.innerHTML = '';
-                if (data.parts && data.parts.length > 0) {
-                    data.parts.forEach(part => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${part.name}</td>
-                            <td style="text-align: right;">$${parseFloat(part.price).toFixed(2)}</td>
-                        `;
-                        trPartsBody.appendChild(tr);
-                    });
-                } else {
-                    trPartsBody.innerHTML = '<tr><td colspan="2">No hardware parts used.</td></tr>';
-                }
-
-                // Render barcode for Job ID
-                const paperSize = localStorage.getItem('printer_paper_size') || '58mm';
-                const barWidth = paperSize === '80mm' ? 3 : 2;
-                const barHeight = paperSize === '80mm' ? 50 : 40;
-                const barFontSize = paperSize === '80mm' ? 12 : 10;
-                JsBarcode("#trBarcode", receipt.job_application_id.toString(), {
-                    format: "CODE128",
-                    width: barWidth,
-                    height: barHeight,
-                    displayValue: true,
-                    fontSize: barFontSize,
-                    margin: 0
-                });
-            }
-
-            // Render tracking QR Code (Tracking requirement link)
-            const trackingUrl = `${window.location.origin}/track/${receipt.job_application_id}`;
+            /* 3. html2canvas → canvas */
             const paperSize = localStorage.getItem('printer_paper_size') || '58mm';
-            const qrSize = paperSize === '80mm' ? 120 : 90;
-            const qr = new QRious({
-                element: document.getElementById('trQrcode'),
-                value: trackingUrl,
-                size: qrSize
-            });
-
-            // 2. WAIT FOR IMAGES TO LOAD IN THE DOM BEFORE RASTERIZING
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            // 3. RUN HTML2CANVAS ON THE TEMPLATE
-            const receiptNode = document.getElementById('receiptTemplate');
             const paperWidth = paperSize === '80mm' ? 576 : 384;
+            const receiptNode = document.getElementById('receiptTemplate');
 
-            // Set styles explicitly to guarantee white background rasterization
             receiptNode.style.display = 'block';
             receiptNode.className = `thermal-receipt paper-${paperSize}`;
             receiptNode.style.width = paperWidth + 'px';
 
             const canvas = await html2canvas(receiptNode, {
                 width: paperWidth,
-                scale: 1, // Standard scaling to output exact width
+                scale: 1,
                 logging: false,
                 backgroundColor: '#ffffff'
             });
+            receiptNode.style.display = 'none';
 
-            receiptNode.style.display = 'none'; // Hide again
-
-            // 4. CONVERT CANVAS PIXELS TO ESC/POS RASTER STREAM
-            statusText.innerText = 'Compiling ESC/POS commands...';
+            /* 4. ESC/POS binary */
+            _setStatus('working', 'Compiling ESC/POS commands…');
             const escPosBinary = canvasToEscPos(canvas);
 
-            // 5. TRANSMIT STREAM DIRECTLY VIA WEB BLUETOOTH
-            statusBar.className = 'printer-status-bar working';
-            const writeChar = await connectPrinter();
+            /* 5. Send via the CACHED characteristic — NOT a new connectPrinter() call */
+            if (!_cachedWriteChar) throw new Error('Printer is not connected.');
 
-            await printBinary(writeChar, escPosBinary, (progressMsg) => {
-                statusText.innerText = progressMsg;
+            _setStatus('working', 'Sending to printer…');
+            await printBinary(_cachedWriteChar, escPosBinary, (msg) => {
+                const text = document.getElementById('printerStatusText');
+                if (text) text.innerText = msg;
             });
 
-            statusBar.className = 'printer-status-bar connected';
-            statusText.innerText = 'Printing Completed!';
+            _setStatus('connected', 'Printing completed!');
 
         } catch (error) {
             console.error(error);
-            statusBar.className = 'printer-status-bar disconnected';
-            statusText.innerText = 'Printing failed: ' + error.message;
+            _setStatus('disconnected', 'Printing failed: ' + error.message);
             alert('Thermal Printing Error: ' + error.message);
         } finally {
             printBtn.disabled = false;
@@ -1309,127 +1234,54 @@
         }
     }
 
-    /**
-     * Compiles and downloads receipt PDF on the client side using html2pdf.js
-     */
+    /* ================================================================== */
+    /*  DOWNLOAD PDF                                                        */
+    /* ================================================================== */
     async function downloadReceiptPDF() {
         const btnPdf = document.getElementById('btnDownloadPDF');
-        
-        // 1. Verify that the receipt has been saved to the database first
+
         if (!loadedReceiptRecord) {
-            const saveFirst = confirm('Please save the receipt to the system database first by clicking "Save & Direct Print". Do you want to save it now?');
-            if (saveFirst) {
-                await saveAndPrintReceipt();
-            }
+            const go = confirm('Save the receipt first. Proceed to save now?');
+            if (go) await saveAndPrintReceipt();
             return;
         }
 
         btnPdf.disabled = true;
-        btnPdf.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Generating PDF...';
+        btnPdf.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i> Generating PDF…';
 
         try {
-            // 2. Populate offscreen HTML receipt DOM with stored data
             const receipt = loadedReceiptRecord;
-            
-            document.getElementById('trShopPhone').innerText = 'Phone: ' + receipt.shop_phone;
-            document.getElementById('trShopAddress').innerText = 'Address: ' + receipt.shop_address;
-            document.getElementById('trReceiptTitle').innerText = receipt.receipt_type === 'check_in' ? 'Check-in Receipt' : 'Final Receipt';
-
-            const date = new Date(receipt.created_at || new Date());
-            document.getElementById('trDateTime').innerText = date.toLocaleString('en-US', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
-                hour: '2-digit', minute: '2-digit', hour12: true
-            });
-
-            const data = receipt.receipt_data;
-            document.getElementById('trTechnicianName').innerText = data.technician_name;
-
-            const cSigImg = document.getElementById('trCustomerSigImg');
-            cSigImg.src = receipt.customer_signature;
-            cSigImg.style.display = 'block';
-
-            const tSigImg = document.getElementById('trTechnicianSigImg');
-            const tSigBox = document.getElementById('trTechnicianSigBox');
-
-            if (receipt.receipt_type === 'check_in') {
-                document.getElementById('trCheckInOnly').style.display = 'block';
-                document.getElementById('trFinalOnly').style.display = 'none';
-
-                document.getElementById('trDeviceCondition').innerText = data.device_condition;
-                document.getElementById('trEstimatedCost').innerText = data.estimated_cost ? ('$' + parseFloat(data.estimated_cost).toFixed(2)) : '—';
-                document.getElementById('trCheckInNotesText').innerText = data.notes || 'None';
-
-                tSigImg.src = receipt.technician_signature;
-                tSigImg.style.display = 'block';
-                tSigBox.style.display = 'block';
-            } else {
-                document.getElementById('trCheckInOnly').style.display = 'none';
-                document.getElementById('trFinalOnly').style.display = 'block';
-
-                document.getElementById('trRepairDetailsText').innerText = data.repair_details;
-                document.getElementById('trLaborCost').innerText = '$' + parseFloat(data.labor_cost).toFixed(2);
-                document.getElementById('trTotalAmount').innerText = '$' + parseFloat(data.total_amount).toFixed(2);
-                document.getElementById('trWarrantyNote').innerText = data.warranty_period || 'No Warranty';
-                tSigBox.style.display = 'none';
-
-                const trPartsBody = document.getElementById('trPartsTableBody');
-                trPartsBody.innerHTML = '';
-                if (data.parts && data.parts.length > 0) {
-                    data.parts.forEach(part => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${part.name}</td>
-                            <td style="text-align: right;">$${parseFloat(part.price).toFixed(2)}</td>
-                        `;
-                        trPartsBody.appendChild(tr);
-                    });
-                } else {
-                    trPartsBody.innerHTML = '<tr><td colspan="2">No hardware parts used.</td></tr>';
-                }
-
-                const paperSize = localStorage.getItem('printer_paper_size') || '58mm';
-                const barWidth = paperSize === '80mm' ? 3 : 2;
-                const barHeight = paperSize === '80mm' ? 50 : 40;
-                const barFontSize = paperSize === '80mm' ? 12 : 10;
-                JsBarcode("#trBarcode", receipt.job_application_id.toString(), {
-                    format: "CODE128",
-                    width: barWidth,
-                    height: barHeight,
-                    displayValue: true,
-                    fontSize: barFontSize,
-                    margin: 0
-                });
-            }
-
-            const trackingUrl = `${window.location.origin}/track/${receipt.job_application_id}`;
             const paperSize = localStorage.getItem('printer_paper_size') || '58mm';
-            const qrSize = paperSize === '80mm' ? 120 : 90;
-            new QRious({
-                element: document.getElementById('trQrcode'),
-                value: trackingUrl,
-                size: qrSize
-            });
-
-            // Wait for DOM assets
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            // 3. Trigger html2pdf conversion
-            const receiptNode = document.getElementById('receiptTemplate');
             const paperWidth = paperSize === '80mm' ? 576 : 384;
+
+            _populateReceiptTemplate(receipt);
+            await new Promise(r => setTimeout(r, 300));
+
+            const receiptNode = document.getElementById('receiptTemplate');
             receiptNode.style.display = 'block';
             receiptNode.className = `thermal-receipt paper-${paperSize}`;
             receiptNode.style.width = paperWidth + 'px';
 
             const opt = {
-                margin:       0.15,
-                filename:     `receipt_${receipt.receipt_type}_job_${receipt.job_application_id}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'in', format: paperSize === '80mm' ? [6.2, 8.8] : [4.2, 7.8], orientation: 'portrait' }
+                margin: 0.15,
+                filename: `receipt_${receipt.receipt_type}_job_${receipt.job_application_id}.pdf`,
+                image: {
+                    type: 'jpeg',
+                    quality: 0.98
+                },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                },
+                jsPDF: {
+                    unit: 'in',
+                    format: paperSize === '80mm' ? [6.2, 8.8] : [4.2, 7.8],
+                    orientation: 'portrait'
+                }
             };
 
             await html2pdf().from(receiptNode).set(opt).save();
-
             receiptNode.style.display = 'none';
 
         } catch (err) {
@@ -1439,5 +1291,94 @@
             btnPdf.disabled = false;
             btnPdf.innerHTML = '<i class="fa fa-file-pdf me-1"></i> Save PDF';
         }
+    }
+
+    /* ================================================================== */
+    /*  SHARED HELPER: populates the offscreen receipt template             */
+    /* ================================================================== */
+    function _populateReceiptTemplate(receipt) {
+        const data = receipt.receipt_data;
+        const paperSize = localStorage.getItem('printer_paper_size') || '58mm';
+
+        document.getElementById('trShopPhone').innerText = 'Phone: ' + receipt.shop_phone;
+        document.getElementById('trShopAddress').innerText = 'Address: ' + receipt.shop_address;
+        document.getElementById('trReceiptTitle').innerText = receipt.receipt_type === 'check_in' ? 'Check-in Receipt' :
+            'Final Receipt';
+
+        const date = new Date(receipt.created_at || new Date());
+        document.getElementById('trDateTime').innerText = date.toLocaleString('en-US', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        document.getElementById('trTechnicianName').innerText = data.technician_name;
+
+        const cSigImg = document.getElementById('trCustomerSigImg');
+        cSigImg.src = receipt.customer_signature;
+        cSigImg.style.display = 'block';
+
+        const tSigImg = document.getElementById('trTechnicianSigImg');
+        const tSigBox = document.getElementById('trTechnicianSigBox');
+
+        if (receipt.receipt_type === 'check_in') {
+            document.getElementById('trCheckInOnly').style.display = 'block';
+            document.getElementById('trFinalOnly').style.display = 'none';
+
+            document.getElementById('trDeviceCondition').innerText = data.device_condition;
+            document.getElementById('trEstimatedCost').innerText = data.estimated_cost ?
+                ('$' + parseFloat(data.estimated_cost).toFixed(2)) : '—';
+            document.getElementById('trCheckInNotesText').innerText = data.notes || 'None';
+
+            tSigImg.src = receipt.technician_signature;
+            tSigImg.style.display = 'block';
+            tSigBox.style.display = 'block';
+
+        } else {
+            document.getElementById('trCheckInOnly').style.display = 'none';
+            document.getElementById('trFinalOnly').style.display = 'block';
+
+            document.getElementById('trRepairDetailsText').innerText = data.repair_details;
+            document.getElementById('trLaborCost').innerText = '$' + parseFloat(data.labor_cost).toFixed(2);
+            document.getElementById('trTotalAmount').innerText = '$' + parseFloat(data.total_amount).toFixed(2);
+            document.getElementById('trWarrantyNote').innerText = data.warranty_period || 'No Warranty';
+            tSigBox.style.display = 'none';
+
+            const trPartsBody = document.getElementById('trPartsTableBody');
+            trPartsBody.innerHTML = '';
+            if (data.parts?.length) {
+                data.parts.forEach(part => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML =
+                        `<td>${part.name}</td><td style="text-align:right;">$${parseFloat(part.price).toFixed(2)}</td>`;
+                    trPartsBody.appendChild(tr);
+                });
+            } else {
+                trPartsBody.innerHTML = '<tr><td colspan="2">No hardware parts used.</td></tr>';
+            }
+
+            const barWidth = paperSize === '80mm' ? 3 : 2;
+            const barHeight = paperSize === '80mm' ? 50 : 40;
+            const barFont = paperSize === '80mm' ? 12 : 10;
+            JsBarcode('#trBarcode', receipt.job_application_id.toString(), {
+                format: 'CODE128',
+                width: barWidth,
+                height: barHeight,
+                displayValue: true,
+                fontSize: barFont,
+                margin: 0
+            });
+        }
+
+        const trackingUrl = `${window.location.origin}/track/${receipt.job_application_id}`;
+        const qrSize = paperSize === '80mm' ? 120 : 90;
+        new QRious({
+            element: document.getElementById('trQrcode'),
+            value: trackingUrl,
+            size: qrSize
+        });
     }
 </script>
