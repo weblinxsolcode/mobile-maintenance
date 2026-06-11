@@ -1092,6 +1092,43 @@ class ShopController extends Controller
         ]);
     }
 
+    public function printNetwork(Request $request)
+    {
+        $request->validate([
+            'printer_ip' => 'required|string',
+            'printer_port' => 'required|integer',
+            'base64_data' => 'required|string',
+        ]);
+
+        $ip = $request->printer_ip;
+        $port = $request->printer_port;
+        $data = base64_decode($request->base64_data);
+
+        try {
+            // Open a raw socket to the network printer with a short timeout (3 seconds)
+            $socket = @fsockopen($ip, $port, $errno, $errstr, 3.0);
+            if (!$socket) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Failed to connect to printer at {$ip}:{$port}. Error: {$errstr} ({$errno})"
+                ], 500);
+            }
+
+            fwrite($socket, $data);
+            fclose($socket);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Receipt printed successfully via Network!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Network Printing Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function backupIndex()
     {
         $title = "Backup & Restore";

@@ -292,6 +292,33 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="row g-2 align-items-center mt-2 border-top pt-2">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted mb-1" for="connectionModeSelect">Print Option / Mode</label>
+                                <select id="connectionModeSelect" class="form-select form-select-sm"
+                                    onchange="handleConnectionModeChange()">
+                                    <option value="auto">Auto (BT Fallback to WiFi/LAN)</option>
+                                    <option value="bluetooth">Bluetooth Only</option>
+                                    <option value="network">Network (WiFi/LAN) Only</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="networkPrinterSettings" style="display: none;">
+                                <label class="form-label small fw-bold text-muted mb-1">Network Printer Settings</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" id="networkPrinterIp" class="form-control"
+                                        placeholder="IP Address (e.g. 192.168.1.191)" onchange="saveNetworkSettings()">
+                                    <input type="number" id="networkPrinterPort" class="form-control"
+                                        style="max-width: 75px;" placeholder="Port" value="9100" onchange="saveNetworkSettings()">
+                                    <button class="btn btn-primary btn-sm fw-bold" type="button" onclick="testNetworkPrint()">
+                                        <i class="fa fa-paper-plane"></i> Test
+                                    </button>
+                                </div>
+                                <div class="small mt-1 text-primary" style="font-size: 0.72rem; line-height: 1.2;">
+                                    <i class="fa fa-info-circle"></i> <strong>How to find IP?</strong> Turn printer OFF, hold <strong>FEED</strong> button, and turn printer ON. It will print a sheet showing the IP.
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -710,13 +737,96 @@
         }
     }
 
+    /** Contextual status bar UI refresh based on mode and state */
+    function updateStatusUI() {
+        const mode = document.getElementById('connectionModeSelect')?.value || 'auto';
+        const ip = document.getElementById('networkPrinterIp')?.value || '';
+        const port = document.getElementById('networkPrinterPort')?.value || '9100';
+        const bar = document.getElementById('printerStatusBar');
+        const icon = bar?.querySelector('.status-icon');
+        const btn = document.getElementById('btnReconnectPrinter');
+
+        if (!bar) return;
+
+        if (mode === 'network') {
+            if (btn) btn.style.display = 'none';
+            if (icon) icon.className = 'fa fa-wifi status-icon';
+            
+            if (ip) {
+                bar.className = 'printer-status-bar connected';
+                const text = document.getElementById('printerStatusText');
+                if (text) text.innerText = `Network Printer Ready (${ip}:${port})`;
+            } else {
+                bar.className = 'printer-status-bar disconnected';
+                const text = document.getElementById('printerStatusText');
+                if (text) text.innerText = 'Network IP not configured.';
+            }
+        } else if (mode === 'bluetooth') {
+            if (btn) btn.style.display = 'inline-block';
+            if (icon) icon.className = 'fab fa-bluetooth status-icon';
+            
+            if (isPrinterConnected()) {
+                bar.className = 'printer-status-bar connected';
+                const text = document.getElementById('printerStatusText');
+                if (text) text.innerText = `Connected: ${cachedBluetoothDevice?.name ?? 'POS Printer'}`;
+            } else {
+                bar.className = 'printer-status-bar disconnected';
+                const text = document.getElementById('printerStatusText');
+                if (text) text.innerText = 'Bluetooth Printer Disconnected';
+            }
+        } else {
+            // Auto Mode (Fallback)
+            if (btn) btn.style.display = 'inline-block';
+            if (icon) icon.className = 'fab fa-bluetooth status-icon';
+            
+            if (isPrinterConnected()) {
+                bar.className = 'printer-status-bar connected';
+                const text = document.getElementById('printerStatusText');
+                if (text) text.innerText = `Auto Mode - Connected: ${cachedBluetoothDevice?.name ?? 'POS Printer'}`;
+            } else {
+                if (ip) {
+                    bar.className = 'printer-status-bar connected';
+                    const text = document.getElementById('printerStatusText');
+                    if (text) text.innerText = `Auto Mode - WiFi Fallback Ready (${ip}:${port})`;
+                } else {
+                    bar.className = 'printer-status-bar disconnected';
+                    const text = document.getElementById('printerStatusText');
+                    if (text) text.innerText = 'Bluetooth Disconnected (No Network Fallback)';
+                }
+            }
+        }
+    }
+
+    function handleConnectionModeChange() {
+        const mode = document.getElementById('connectionModeSelect')?.value || 'auto';
+        localStorage.setItem('printer_connection_mode', mode);
+
+        const netSettings = document.getElementById('networkPrinterSettings');
+        if (netSettings) {
+            netSettings.style.display = (mode === 'network' || mode === 'auto') ? 'block' : 'none';
+        }
+
+        updateStatusUI();
+    }
+
+    function saveNetworkSettings() {
+        const ip = document.getElementById('networkPrinterIp')?.value || '';
+        const port = document.getElementById('networkPrinterPort')?.value || '9100';
+        localStorage.setItem('printer_network_ip', ip);
+        localStorage.setItem('printer_network_port', port);
+        updateStatusUI();
+    }
+
     /* ── Listen for events fired by printing-engine.js ────────────────── */
     window.addEventListener('printerconnected', (e) => {
-        _setStatus('connected', `Connected: ${e.detail?.deviceName ?? 'Bluetooth Printer'}`);
+        _printerConnected = true;
+        updateStatusUI();
     });
 
     window.addEventListener('printerdisconnected', () => {
-        _setStatus('disconnected', 'Bluetooth Printer Disconnected');
+        _printerConnected = false;
+        _cachedWriteChar = null;
+        updateStatusUI();
     });
 
     /* ── Connect button handler ────────────────────────────────────────── */
@@ -724,42 +834,40 @@
         _setStatus('working', 'Connecting to Bluetooth…');
 
         try {
-            /*
-             * connectPrinter() from printing-engine.js must return the writable
-             * GATT characteristic (or throw on failure).
-             * Pass a status-callback so it can give intermediate messages.
-             */
             const char = await connectPrinter((msg, ok) => {
                 if (ok === true) {
-                    _cachedWriteChar = char; // set below if resolve; redundant but safe
-                    _setStatus('connected', msg);
+                    _cachedWriteChar = char;
+                    _printerConnected = true;
+                    updateStatusUI();
                 } else if (ok === false) {
-                    _setStatus('disconnected', msg);
+                    _printerConnected = false;
+                    _cachedWriteChar = null;
+                    updateStatusUI();
                 } else {
-                    // intermediate / undefined – keep spinner
-                    const bar = document.getElementById('printerStatusBar');
-                    if (bar) bar.className = 'printer-status-bar working';
-                    const text = document.getElementById('printerStatusText');
-                    if (text) text.innerText = msg;
+                    _setStatus('working', msg);
                 }
             });
 
-            /* connectPrinter resolved → we have the characteristic */
             if (char) {
                 _cachedWriteChar = char;
                 _printerConnected = true;
-                _setStatus('connected', 'Printer Connected & Ready!');
                 localStorage.setItem('printer_was_connected', '1');
+                updateStatusUI();
             }
 
         } catch (err) {
             console.error('Web Bluetooth connection failed', err);
-            _setStatus('disconnected', 'Connection failed – try again');
+            _printerConnected = false;
+            _cachedWriteChar = null;
+            updateStatusUI();
         }
     }
 
     /* ── Auto-reconnect on modal open ──────────────────────────────────── */
     async function _tryAutoReconnect() {
+        const mode = localStorage.getItem('printer_connection_mode') || 'auto';
+        if (mode === 'network') return;
+
         const wasConnected = localStorage.getItem('printer_was_connected') === '1';
         if (!wasConnected) return;
 
@@ -769,11 +877,16 @@
             if (char) {
                 _cachedWriteChar = char;
                 _printerConnected = true;
-                _setStatus('connected', 'Printer reconnected!');
+                localStorage.setItem('printer_was_connected', '1');
+            } else {
+                _printerConnected = false;
+                _cachedWriteChar = null;
             }
         } catch {
-            _setStatus('disconnected', 'Bluetooth Printer Disconnected');
+            _printerConnected = false;
+            _cachedWriteChar = null;
         }
+        updateStatusUI();
     }
 
     /* ================================================================== */
@@ -877,12 +990,23 @@
         const autoSwitch = document.getElementById('autoPrintSwitch');
         if (autoSwitch) autoSwitch.checked = localStorage.getItem('auto_print_on_completion') === 'true';
 
-        /* ── Reflect current connection state immediately ──────────────── */
-        if (isPrinterConnected()) {
-            _setStatus('connected', 'Printer Connected & Ready!');
-        } else {
-            _setStatus('disconnected', 'Bluetooth Printer Disconnected');
-            /* Attempt silent auto-reconnect in background */
+        /* Restore connection mode & network printer details */
+        const savedMode = localStorage.getItem('printer_connection_mode') || 'auto';
+        const modeSelect = document.getElementById('connectionModeSelect');
+        if (modeSelect) modeSelect.value = savedMode;
+
+        const savedIp = localStorage.getItem('printer_network_ip') || '';
+        const ipInput = document.getElementById('networkPrinterIp');
+        if (ipInput) ipInput.value = savedIp;
+
+        const savedPort = localStorage.getItem('printer_network_port') || '9100';
+        const portInput = document.getElementById('networkPrinterPort');
+        if (portInput) portInput.value = savedPort;
+
+        handleConnectionModeChange(); // toggles network settings visibility & updates status UI
+
+        /* ── Reflect current connection state or auto-reconnect ──────────────── */
+        if (savedMode !== 'network' && !isPrinterConnected()) {
             _tryAutoReconnect();
         }
 
@@ -1108,23 +1232,42 @@
         }
 
         /* ── Offer to connect printer if not already connected ──────── */
-        if (!isPrinterConnected()) {
+        const mode = document.getElementById('connectionModeSelect')?.value || 'auto';
+        const ip = document.getElementById('networkPrinterIp')?.value || '';
+        
+        let shouldWarnBluetooth = false;
+        if (mode === 'bluetooth') {
+            shouldWarnBluetooth = !isPrinterConnected();
+        } else if (mode === 'auto') {
+            shouldWarnBluetooth = !isPrinterConnected() && !ip;
+        }
+
+        if (shouldWarnBluetooth) {
             const connectNow = confirm('Bluetooth printer is not connected. Connect and print now?');
             if (connectNow) {
                 _setStatus('working', 'Connecting…');
                 try {
                     const char = await connectPrinter((msg, ok) => {
-                        if (ok === true) _setStatus('connected', msg);
-                        else if (ok === false) _setStatus('disconnected', msg);
+                        if (ok === true) {
+                            _cachedWriteChar = char;
+                            _printerConnected = true;
+                            updateStatusUI();
+                        } else if (ok === false) {
+                            _printerConnected = false;
+                            _cachedWriteChar = null;
+                            updateStatusUI();
+                        }
                     });
                     if (char) {
                         _cachedWriteChar = char;
                         _printerConnected = true;
-                        _setStatus('connected', 'Printer Connected & Ready!');
                         localStorage.setItem('printer_was_connected', '1');
+                        updateStatusUI();
                     }
                 } catch (e) {
-                    _setStatus('disconnected', 'Connection cancelled / failed');
+                    _printerConnected = false;
+                    _cachedWriteChar = null;
+                    updateStatusUI();
                     alert('Printer connection failed. The receipt will still be saved, but not printed.');
                 }
             }
@@ -1158,10 +1301,11 @@
                     disableSignatureDrawing(customerSigUrl, technicianSigUrl);
                     saveBtn.innerText = 'Direct Reprint';
 
-                    if (isPrinterConnected()) {
+                    const shouldAutoPrint = isPrinterConnected() || mode === 'network' || (mode === 'auto' && ip);
+                    if (shouldAutoPrint) {
                         await renderAndSendToPrinter(response.receipt);
                     } else {
-                        alert('Receipt saved! Connect the printer to print.');
+                        alert('Receipt saved! Configure printer settings to print.');
                     }
                 } else {
                     alert('Save failed: ' + response.message);
@@ -1213,16 +1357,63 @@
             _setStatus('working', 'Compiling ESC/POS commands…');
             const escPosBinary = canvasToEscPos(canvas);
 
-            /* 5. Send via the CACHED characteristic — NOT a new connectPrinter() call */
-            if (!_cachedWriteChar) throw new Error('Printer is not connected.');
+            /* 5. Choose destination and send printing stream */
+            const mode = document.getElementById('connectionModeSelect')?.value || 'auto';
+            const ip = document.getElementById('networkPrinterIp')?.value || '';
+            const port = document.getElementById('networkPrinterPort')?.value || '9100';
 
-            _setStatus('working', 'Sending to printer…');
-            await printBinary(_cachedWriteChar, escPosBinary, (msg) => {
-                const text = document.getElementById('printerStatusText');
-                if (text) text.innerText = msg;
-            });
+            let printSuccess = false;
 
-            _setStatus('connected', 'Printing completed!');
+            if (mode === 'bluetooth') {
+                if (!_cachedWriteChar) throw new Error('Bluetooth printer is not connected.');
+                
+                _setStatus('working', 'Sending to Bluetooth printer…');
+                await printBinary(_cachedWriteChar, escPosBinary, (msg) => {
+                    const text = document.getElementById('printerStatusText');
+                    if (text) text.innerText = msg;
+                });
+                printSuccess = true;
+            } else if (mode === 'network') {
+                if (!ip) throw new Error('Network printer IP is not configured.');
+                
+                _setStatus('working', `Sending to Network printer at ${ip}:${port}…`);
+                await printViaNetwork(ip, port, escPosBinary);
+                printSuccess = true;
+            } else {
+                // Auto Fallback Mode
+                if (isPrinterConnected()) {
+                    try {
+                        _setStatus('working', 'Sending to Bluetooth printer…');
+                        await printBinary(_cachedWriteChar, escPosBinary, (msg) => {
+                            const text = document.getElementById('printerStatusText');
+                            if (text) text.innerText = msg;
+                        });
+                        printSuccess = true;
+                    } catch (btErr) {
+                        console.warn('Bluetooth print failed, falling back to network...', btErr);
+                        if (ip) {
+                            _setStatus('working', `Bluetooth failed. Falling back to Network printer at ${ip}:${port}…`);
+                            await printViaNetwork(ip, port, escPosBinary);
+                            printSuccess = true;
+                        } else {
+                            throw new Error('Bluetooth print failed and no network fallback IP is configured.');
+                        }
+                    }
+                } else {
+                    if (ip) {
+                        _setStatus('working', `Bluetooth disconnected. Routing to Network printer at ${ip}:${port}…`);
+                        await printViaNetwork(ip, port, escPosBinary);
+                        printSuccess = true;
+                    } else {
+                        throw new Error('Bluetooth is disconnected and no network IP is configured.');
+                    }
+                }
+            }
+
+            if (printSuccess) {
+                _setStatus('connected', 'Printing completed successfully!');
+                updateStatusUI();
+            }
 
         } catch (error) {
             console.error(error);
@@ -1231,6 +1422,75 @@
         } finally {
             printBtn.disabled = false;
             printBtn.innerText = loadedReceiptRecord ? 'Direct Reprint' : 'Save & Direct Print';
+        }
+    }
+
+    async function printViaNetwork(ip, port, uint8ArrayData) {
+        const base64Data = uint8ArrayToBase64(uint8ArrayData);
+        
+        const response = await fetch("{{ route('shop.receipts.printNetwork') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                printer_ip: ip,
+                printer_port: parseInt(port) || 9100,
+                base64_data: base64Data
+            })
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'Failed to print via Network.');
+        }
+        return result;
+    }
+
+    function uint8ArrayToBase64(uint8Array) {
+        let binary = '';
+        const len = uint8Array.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(uint8Array[i]);
+        }
+        return window.btoa(binary);
+    }
+
+    async function testNetworkPrint() {
+        const ip = document.getElementById('networkPrinterIp')?.value;
+        const port = document.getElementById('networkPrinterPort')?.value || '9100';
+        
+        if (!ip) {
+            alert('Please configure the Network Printer IP address first.');
+            return;
+        }
+
+        const btn = document.querySelector('#networkPrinterSettings button');
+        const oldHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+
+        try {
+            // Construct a basic ESC/POS test command
+            const encoder = new TextEncoder();
+            const textBytes = encoder.encode("\n\nNetwork Printer Connection Test\nStatus: SUCCESS\n\n\n\n");
+            
+            const initCmd = new Uint8Array([0x1B, 0x40]);
+            const cutCmd = new Uint8Array([0x1D, 0x56, 66, 0]);
+            
+            const testPayload = new Uint8Array(initCmd.length + textBytes.length + cutCmd.length);
+            testPayload.set(initCmd, 0);
+            testPayload.set(textBytes, initCmd.length);
+            testPayload.set(cutCmd, initCmd.length + textBytes.length);
+
+            await printViaNetwork(ip, port, testPayload);
+            alert('Test page sent successfully! Check your thermal printer.');
+        } catch (err) {
+            alert('Test print failed: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = oldHtml;
         }
     }
 

@@ -170,6 +170,7 @@ Route::prefix('shop')->group(function () {
         // Receipts Routes
         Route::post('/receipts/save', [ShopController::class, 'saveReceipt'])->name('shop.receipts.save');
         Route::get('/receipts/get/{job_application_id}/{type}', [ShopController::class, 'getReceipt'])->name('shop.receipts.get');
+        Route::post('/receipts/print-network', [ShopController::class, 'printNetwork'])->name('shop.receipts.printNetwork');
 
         // Backup Center Routes
         Route::prefix('backups')->group(function () {
