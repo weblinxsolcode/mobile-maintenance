@@ -323,6 +323,66 @@ class BackupService
     }
 
     /**
+     * Restore the system from an uploaded local ZIP file.
+     *
+     * @param string $uploadedFilePath The path to the uploaded temporary file
+     * @return array
+     */
+    public function restoreFromFile(string $uploadedFilePath): array
+    {
+        $startTime = microtime(true);
+        if (!file_exists($uploadedFilePath)) {
+            return ['success' => false, 'error' => 'Uploaded file not found.'];
+        }
+
+        // 1. CREATE SAFETY BACKUP OF THE CURRENT STATE BEFORE OVERWRITING
+        try {
+            $safetyBackup = $this->run(false); // Trigger manual safety backup
+            if (!$safetyBackup['success']) {
+                return [
+                    'success' => false,
+                    'error' => 'Failed to create safety backup prior to restore: ' . $safetyBackup['error']
+                ];
+            }
+            $safetyZipPath = storage_path('app/backups/' . $safetyBackup['filename']);
+        } catch (\Throwable $th) {
+            return [
+                'success' => false,
+                'error' => 'Failed to create safety backup prior to restore: ' . $th->getMessage()
+            ];
+        }
+
+        // 2. RUN RESTORE
+        try {
+            $this->executeRestoreFromZip($uploadedFilePath);
+
+            return [
+                'success' => true,
+                'safety_backup' => $safetyBackup['filename'],
+                'duration' => round(microtime(true) - $startTime, 2) . 's'
+            ];
+        } catch (\Throwable $restoreException) {
+            Log::error("Restore from file failed: " . $restoreException->getMessage() . ". Attempting rollback to safety backup...");
+
+            // 3. ATTEMPT ROLLBACK TO SAFETY BACKUP
+            try {
+                if (file_exists($safetyZipPath)) {
+                    $this->executeRestoreFromZip($safetyZipPath);
+                }
+                $rollbackMsg = "Restore failed: {$restoreException->getMessage()}. Rollback to safety backup completed successfully.";
+            } catch (\Throwable $rollbackException) {
+                Log::critical("CRITICAL: Rollback to safety backup failed: " . $rollbackException->getMessage());
+                $rollbackMsg = "Restore failed: {$restoreException->getMessage()}. CRITICAL: Rollback to safety backup also failed: {$rollbackException->getMessage()}. The safety backup is saved at: {$safetyZipPath}";
+            }
+
+            return [
+                'success' => false,
+                'error' => $rollbackMsg
+            ];
+        }
+    }
+
+    /**
      * Executes the unzip, database import, folder replacement, and migrations.
      *
      * @param string $zipPath

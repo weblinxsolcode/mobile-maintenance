@@ -673,6 +673,20 @@
                         </td>
                     </tr>
                     <tr>
+                        <td class="jd-key">Supported Devices</td>
+                        <td class="jd-val">
+                            @if(!empty($existingOffer->device_models_data) && $existingOffer->device_models_data->count() > 0)
+                                @foreach($existingOffer->device_models_data as $model)
+                                    <span class="badge bg-secondary text-white px-2 py-1 me-1 mb-1" style="border-radius: 12px; font-weight: 500;">
+                                        {{ $model->brand->name ?? '' }} - {{ $model->name }}
+                                    </span>
+                                @endforeach
+                            @else
+                                <span class="text-muted small">None specified</span>
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
                         <td class="jd-key">Description</td>
                         <td class="jd-val">{{ $existingOffer->description ?? 'N/A' }}</td>
                     </tr>

@@ -6,7 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class JobApplications extends Model
 {
-    protected $fillable = ['job_id', 'shop_id', 'user_id', 'technician_id', 'description', 'status', 'created_at', 'updated_at', 'price', 'time', 'warranty', 'warranty_months', 'image', 'title'];
+    protected $fillable = ['job_id', 'shop_id', 'user_id', 'technician_id', 'description', 'status', 'created_at', 'updated_at', 'price', 'time', 'warranty', 'warranty_months', 'image', 'title', 'device_models'];
+
+    protected $casts = [
+        'device_models' => 'array',
+    ];
+
+    protected $appends = ['device_models_data'];
+
+    public function getDeviceModelsDataAttribute()
+    {
+        $ids = $this->device_models ?: [];
+        if (empty($ids)) {
+            return collect();
+        }
+        return Management::whereIn('id', $ids)->with('brand')->get();
+    }
+
     public function jobInfo()
     {
         return $this->belongsTo(JobListings::class, 'job_id', 'id');

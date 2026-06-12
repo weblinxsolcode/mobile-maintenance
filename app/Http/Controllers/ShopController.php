@@ -120,7 +120,9 @@ class ShopController extends Controller
 
         $appliedJobs = JobListings::where('id', $id)->first();
 
-        $data = compact('title', 'appliedJobs', 'shopid');
+        $brandsWithModels = Management::where('role', 'Brand')->with('child')->get();
+
+        $data = compact('title', 'appliedJobs', 'shopid', 'brandsWithModels');
 
         return view('shop.applied-jobs.details', $data);
     }
@@ -154,23 +156,12 @@ class ShopController extends Controller
             'warranty_months' => 'required_if:warranty,1',
             "description" => "required",
             'image' => 'nullable|image',
+            'device_models' => 'nullable|array',
+            'device_models.*' => 'integer|exists:management,id',
         ]);
 
 
         try {
-            // JobApplications::create([
-            //     "user_id" => $request->user_id,
-            //     "shop_id" => session()->get('shop_id'),
-            //     "job_id" => $id,
-            //     "technician_id" => null,
-            //     "status" => "pending",
-            //     "price" => $request->price,
-            //     "time" => $request->time,
-            //     "warranty" => $request->warranty,
-            //     "warranty_months" => $request->warranty_months,
-            //     "description" => $request->description,
-            // ]);
-
             $new = new JobApplications();
             $new->user_id = $request->user_id;
             $new->shop_id = session()->get('shop_id');
@@ -183,6 +174,7 @@ class ShopController extends Controller
             $new->warranty = $request->warranty;
             $new->warranty_months = $request->warranty_months;
             $new->description = $request->description;
+            $new->device_models = $request->input('device_models', []);
 
             if ($request->hasFile('image')) {
                 $file = $request->file('image');
@@ -227,6 +219,8 @@ class ShopController extends Controller
             'warranty_months' => 'required_if:warranty,1',
             "description" => "required",
             'image' => 'nullable|image',
+            'device_models' => 'nullable|array',
+            'device_models.*' => 'integer|exists:management,id',
         ]);
 
         $offer = JobApplications::findOrFail($offerId);
@@ -244,6 +238,7 @@ class ShopController extends Controller
         $offer->warranty = $request->warranty;
         $offer->warranty_months = $request->warranty_months;
         $offer->description = $request->description;
+        $offer->device_models = $request->input('device_models', []);
 
         if ($request->hasFile('image')) {
             if ($offer->image && file_exists(public_path($offer->image))) {
@@ -310,28 +305,28 @@ class ShopController extends Controller
             ->firstWhere('type', 'price')
                 ?->value ?? 0;
 
-        // try {
+        try {
 
-        $new = new JobApplications();
-        $new->user_id = $job->user_id ?? null;
-        $new->shop_id = session()->get('shop_id');
-        $new->job_id = $id;
-        $new->technician_id = null;
-        $new->service_id = $service?->id;
-        $new->price = $servicePrice;
-        $new->status = 'accepted';
-        $new->time = $request->time ?? null;
-        $new->warranty = $request->warranty ?? null;
-        $new->warranty_months = $request->warranty_months ?? null;
-        $new->description = $request->description ?? null;
-        $new->save();
+            $new = new JobApplications();
+            $new->user_id = $job->user_id ?? null;
+            $new->shop_id = session()->get('shop_id');
+            $new->job_id = $id;
+            $new->technician_id = null;
+            $new->service_id = $service?->id;
+            $new->price = $servicePrice;
+            $new->status = 'accepted';
+            $new->time = $request->time ?? null;
+            $new->warranty = $request->warranty ?? null;
+            $new->warranty_months = $request->warranty_months ?? null;
+            $new->description = $request->description ?? null;
+            $new->save();
 
-        return redirect()->back()->with('success', 'Offer submitted successfully');
-        // } catch (\Throwable $th) {
-        //     return redirect()->back()->with([
-        //         'error' => 'Something went wrong. Please try again later.'
-        //     ]);
-        // }
+            return redirect()->back()->with('success', 'Offer submitted successfully');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with([
+                'error' => 'Something went wrong. Please try again later.'
+            ]);
+        }
     }
 
     // Services
@@ -1229,6 +1224,47 @@ class ShopController extends Controller
 
         if ($result['success']) {
             $msg = "System successfully restored from backup! (Safety backup compiled as '{$result['safety_backup']}' in {$result['duration']})";
+            return redirect()->back()->with('success', $msg);
+        } else {
+            return redirect()->back()->with('error', "Restore processing failed: {$result['error']}");
+        }
+    }
+
+    public function restoreFromFileBackup(Request $request)
+    {
+        $request->validate([
+            'backup_file' => 'required|file|mimes:zip',
+        ]);
+
+        if (!$request->hasFile('backup_file') || !$request->file('backup_file')->isValid()) {
+            return redirect()->back()->with('error', 'Uploaded backup file is invalid or was not received.');
+        }
+
+        $file = $request->file('backup_file');
+
+        // Ensure backups directory exists
+        $backupsDir = storage_path('app/backups');
+        if (!file_exists($backupsDir)) {
+            mkdir($backupsDir, 0755, true);
+        }
+
+        $tempPath = storage_path('app/backups/temp_uploaded_restore.zip');
+        if (file_exists($tempPath)) {
+            unlink($tempPath);
+        }
+
+        $file->move($backupsDir, 'temp_uploaded_restore.zip');
+
+        $backupService = new \App\Services\BackupService();
+        $result = $backupService->restoreFromFile($tempPath);
+
+        // Clean up temporary file
+        if (file_exists($tempPath)) {
+            unlink($tempPath);
+        }
+
+        if ($result['success']) {
+            $msg = "System successfully restored from the uploaded file! (Safety backup compiled as '{$result['safety_backup']}' in {$result['duration']})";
             return redirect()->back()->with('success', $msg);
         } else {
             return redirect()->back()->with('error', "Restore processing failed: {$result['error']}");

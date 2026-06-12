@@ -55,6 +55,31 @@
                             rows="3" required></textarea>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">Supported Device Models (Optional)</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-5">
+                                <select id="submit_offer_brand_select" class="form-control">
+                                    <option value="">Select Brand</option>
+                                    @foreach($brandsWithModels as $b)
+                                        <option value="{{ $b->id }}">{{ $b->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <select id="submit_offer_model_select" class="form-control" disabled>
+                                    <option value="">Select Model</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" id="btn_submit_add_device_model" class="btn btn-outline-primary w-100" disabled>
+                                    <i class="fe fe-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="submit_selected_models_list" class="d-flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="image" class="form-label">Offer Image (optional)</label>
                         <input type="file" class="form-control" id="image" name="image" accept="image/*">
                     </div>
@@ -169,6 +194,43 @@
                         </div>
                     </div>
 
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-dark">Supported Device Models (Optional)</label>
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-5">
+                                    <select id="edit_offer_brand_select" class="form-control">
+                                        <option value="">Select Brand</option>
+                                        @foreach($brandsWithModels as $b)
+                                            <option value="{{ $b->id }}">{{ $b->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <select id="edit_offer_model_select" class="form-control" disabled>
+                                        <option value="">Select Model</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" id="btn_edit_add_device_model" class="btn btn-outline-primary w-100" disabled>
+                                        <i class="fe fe-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="edit_selected_models_list" class="d-flex flex-wrap gap-2 mt-2">
+                                @if(!empty($existingOffer->device_models))
+                                    @foreach($existingOffer->device_models_data as $model)
+                                        <span class="badge bg-secondary text-white d-inline-flex align-items-center gap-2 px-3 py-2 me-1 mb-1" id="model_badge_edit_selected_models_list_{{ $model->id }}" style="border-radius: 20px;">
+                                            {{ $model->brand->name ?? '' }} - {{ $model->name }}
+                                            <i class="fe fe-x" style="cursor: pointer; font-size: 11px;" onclick="removeSelectedModelDevice('edit_selected_models_list', {{ $model->id }})"></i>
+                                            <input type="hidden" name="device_models[]" value="{{ $model->id }}">
+                                        </span>
+                                    @endforeach
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-12">
                             <div class="mb-3">
@@ -224,3 +286,102 @@
     
     });
     </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const brandsData = @json($brandsWithModels ?? []);
+
+        // Helper to setup Brand/Model selector
+        function setupModelSelector(brandSelectId, modelSelectId, addButtonId, listId, inputName) {
+            const brandSelect = document.getElementById(brandSelectId);
+            const modelSelect = document.getElementById(modelSelectId);
+            const addButton = document.getElementById(addButtonId);
+            const listContainer = document.getElementById(listId);
+
+            if (!brandSelect || !modelSelect || !addButton || !listContainer) return;
+
+            // Keep track of selected model IDs
+            const selectedIds = new Set();
+
+            // Populate selectedIds from already rendered inputs if any (for edit mode)
+            listContainer.querySelectorAll('input[type="hidden"]').forEach(input => {
+                selectedIds.add(parseInt(input.value));
+            });
+
+            // Brand selection changed
+            brandSelect.addEventListener('change', function () {
+                const brandId = parseInt(this.value);
+                modelSelect.innerHTML = '<option value="">Select Model</option>';
+                addButton.disabled = true;
+
+                if (brandId) {
+                    const brand = brandsData.find(b => b.id === brandId);
+                    if (brand && brand.child) {
+                        brand.child.forEach(model => {
+                            if (!selectedIds.has(model.id)) {
+                                const opt = document.createElement('option');
+                                opt.value = model.id;
+                                opt.textContent = model.name;
+                                modelSelect.appendChild(opt);
+                            }
+                        });
+                        modelSelect.disabled = false;
+                    }
+                } else {
+                    modelSelect.disabled = true;
+                }
+            });
+
+            // Model selection changed
+            modelSelect.addEventListener('change', function () {
+                addButton.disabled = !this.value;
+            });
+
+            // Add button clicked
+            addButton.addEventListener('click', function () {
+                const brandId = parseInt(brandSelect.value);
+                const modelId = parseInt(modelSelect.value);
+
+                if (!brandId || !modelId) return;
+                if (selectedIds.has(modelId)) return;
+
+                const brandName = brandSelect.options[brandSelect.selectedIndex].text;
+                const modelName = modelSelect.options[modelSelect.selectedIndex].text;
+
+                // Add to tracking set
+                selectedIds.add(modelId);
+
+                // Create badge element
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-secondary text-white d-inline-flex align-items-center gap-2 px-3 py-2 me-1 mb-1';
+                badge.id = `model_badge_${listId}_${modelId}`;
+                badge.style.borderRadius = '20px';
+                badge.innerHTML = `
+                    ${brandName} - ${modelName}
+                    <i class="fe fe-x" style="cursor: pointer; font-size: 11px;" onclick="removeSelectedModelDevice('${listId}', ${modelId})"></i>
+                    <input type="hidden" name="${inputName}" value="${modelId}">
+                `;
+                listContainer.appendChild(badge);
+
+                // Reset selection
+                brandSelect.value = '';
+                modelSelect.innerHTML = '<option value="">Select Model</option>';
+                modelSelect.disabled = true;
+                addButton.disabled = true;
+            });
+
+            // Expose global remove handler for list
+            window.removeSelectedModelDevice = function (targetListId, removeId) {
+                const container = document.getElementById(targetListId);
+                const badge = document.getElementById(`model_badge_${targetListId}_${removeId}`);
+                if (badge) {
+                    badge.remove();
+                    selectedIds.delete(removeId);
+                }
+            };
+        }
+
+        setupModelSelector('submit_offer_brand_select', 'submit_offer_model_select', 'btn_submit_add_device_model', 'submit_selected_models_list', 'device_models[]');
+        setupModelSelector('edit_offer_brand_select', 'edit_offer_model_select', 'btn_edit_add_device_model', 'edit_selected_models_list', 'device_models[]');
+    });
+</script>

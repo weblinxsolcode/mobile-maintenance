@@ -1236,6 +1236,8 @@
         const ip = document.getElementById('networkPrinterIp')?.value || '';
         
         let shouldWarnBluetooth = false;
+        // PAUSED: Bluetooth connection prompt is paused for now
+        /*
         if (mode === 'bluetooth') {
             shouldWarnBluetooth = !isPrinterConnected();
         } else if (mode === 'auto') {
@@ -1272,6 +1274,7 @@
                 }
             }
         }
+        */
 
         /* ── Save to server ──────────────────────────────────────────── */
         const saveBtn = document.getElementById('btnPrintReceiptSubmit');
@@ -1365,6 +1368,8 @@
             let printSuccess = false;
 
             if (mode === 'bluetooth') {
+                alert("Bluetooth printing is temporarily paused. Receipt saved successfully.");
+                /*
                 if (!_cachedWriteChar) throw new Error('Bluetooth printer is not connected.');
                 
                 _setStatus('working', 'Sending to Bluetooth printer…');
@@ -1373,6 +1378,7 @@
                     if (text) text.innerText = msg;
                 });
                 printSuccess = true;
+                */
             } else if (mode === 'network') {
                 if (!ip) throw new Error('Network printer IP is not configured.');
                 
@@ -1380,7 +1386,15 @@
                 await printViaNetwork(ip, port, escPosBinary);
                 printSuccess = true;
             } else {
-                // Auto Fallback Mode
+                // Auto Fallback Mode (Bluetooth paused)
+                if (ip) {
+                    _setStatus('working', `Routing to Network printer at ${ip}:${port}… (Bluetooth paused)`);
+                    await printViaNetwork(ip, port, escPosBinary);
+                    printSuccess = true;
+                } else {
+                    alert('Bluetooth is paused and no network fallback IP is configured. Receipt saved.');
+                }
+                /*
                 if (isPrinterConnected()) {
                     try {
                         _setStatus('working', 'Sending to Bluetooth printer…');
@@ -1408,6 +1422,7 @@
                         throw new Error('Bluetooth is disconnected and no network IP is configured.');
                     }
                 }
+                */
             }
 
             if (printSuccess) {
