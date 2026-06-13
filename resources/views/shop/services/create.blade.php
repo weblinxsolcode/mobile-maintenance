@@ -56,14 +56,20 @@
                                 <!-- BRAND -->
                                 <div class="col-md-4">
                                     <label class="form-label">Brand</label>
-                                    <input type="text" name="brand" class="form-control">
-                                    
+                                    <select name="brand" id="brand-select" class="form-select" required>
+                                        <option value="">Select Brand</option>
+                                        @foreach($brandsWithModels as $brandOption)
+                                            <option value="{{ $brandOption->name }}">{{ $brandOption->name }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
                                 <!-- MODEL -->
                                 <div class="col-md-4">
                                     <label class="form-label">Model</label>
-                                    <input type="text" name="model" class="form-control">
+                                    <select name="model" id="model-select" class="form-select" required>
+                                        <option value="">Select Model</option>
+                                    </select>
                                 </div>
 
                                 <!-- PRICE -->
@@ -102,5 +108,27 @@
         </div>
 
     </div>
+    <script>
+        const brandsData = @json($brandsWithModels);
+        
+        document.getElementById('brand-select').addEventListener('change', function() {
+            const brandName = this.value;
+            const modelSelect = document.getElementById('model-select');
+            
+            modelSelect.innerHTML = '<option value="">Select Model</option>';
+            
+            if (brandName) {
+                const selectedBrand = brandsData.find(b => b.name === brandName);
+                if (selectedBrand && selectedBrand.child) {
+                    selectedBrand.child.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.name;
+                        option.textContent = model.name;
+                        modelSelect.appendChild(option);
+                    });
+                }
+            }
+        });
+    </script>
 </div>
 @endsection

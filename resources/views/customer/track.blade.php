@@ -672,7 +672,7 @@
                 </div>
                 <div class="tr-row">
                     <div>Customer: {{ $job->userInfo->full_name ?? 'N/A' }}</div>
-                    <div>Phone: {{ $job->userInfo->phone ?? $job->jobInfo->phone_number ?? 'N/A' }}</div>
+                    <div>Phone: {{ $job->userInfo->phone_number ?? $job->jobInfo->phone_number ?? 'N/A' }}</div>
                 </div>
                 
                 <div class="tr-divider"></div>
@@ -742,7 +742,7 @@
                 </div>
                 <div class="tr-row">
                     <div>Customer: {{ $job->userInfo->full_name ?? 'N/A' }}</div>
-                    <div>Phone: {{ $job->userInfo->phone ?? $job->jobInfo->phone_number ?? 'N/A' }}</div>
+                    <div>Phone: {{ $job->userInfo->phone_number ?? $job->jobInfo->phone_number ?? 'N/A' }}</div>
                 </div>
                 
                 <div class="tr-divider"></div>

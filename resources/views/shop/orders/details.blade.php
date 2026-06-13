@@ -695,8 +695,8 @@
                         <div>
                             <p class="jd-person-name">{{ ucfirst($appliedJobs->userInfo->full_name ?? 'N/A') }}</p>
                             <p class="jd-person-sub">{{ $appliedJobs->userInfo->email ?? 'N/A' }}</p>
-                            @if (!empty($appliedJobs->userInfo->phone))
-                                <p class="jd-person-sub">{{ $appliedJobs->userInfo->phone }}</p>
+                            @if (!empty($appliedJobs->userInfo->phone_number))
+                                <p class="jd-person-sub">{{ $appliedJobs->userInfo->phone_number }}</p>
                             @endif
                         </div>
                     </div>

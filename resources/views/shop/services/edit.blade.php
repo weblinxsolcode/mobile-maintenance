@@ -54,15 +54,22 @@
                         <!-- BRAND -->
                         <div class="col-md-4">
                             <label class="form-label">Brand</label>
-                            <input type="text" name="brand" class="form-control"
-                                   value="{{ $getMeta('brand') }}">
+                            <select name="brand" id="brand-select" class="form-select" required>
+                                <option value="">Select Brand</option>
+                                @foreach($brandsWithModels as $brandOption)
+                                    <option value="{{ $brandOption->name }}" {{ $getMeta('brand') == $brandOption->name ? 'selected' : '' }}>
+                                        {{ $brandOption->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <!-- MODEL -->
                         <div class="col-md-4">
                             <label class="form-label">Model</label>
-                            <input type="text" name="model" class="form-control"
-                                   value="{{ $getMeta('model') }}">
+                            <select name="model" id="model-select" class="form-select" required>
+                                <option value="">Select Model</option>
+                            </select>
                         </div>
 
                         <!-- PRICE -->
@@ -101,5 +108,41 @@
         </div>
 
     </div>
+    <script>
+        const brandsData = @json($brandsWithModels);
+        const currentBrand = "{{ $getMeta('brand') }}";
+        const currentModel = "{{ $getMeta('model') }}";
+
+        const brandSelect = document.getElementById('brand-select');
+        const modelSelect = document.getElementById('model-select');
+
+        function populateModels(brandName, selectedModel = '') {
+            modelSelect.innerHTML = '<option value="">Select Model</option>';
+            if (brandName) {
+                const selectedBrand = brandsData.find(b => b.name === brandName);
+                if (selectedBrand && selectedBrand.child) {
+                    selectedBrand.child.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.name;
+                        option.textContent = model.name;
+                        if (model.name === selectedModel) {
+                            option.selected = true;
+                        }
+                        modelSelect.appendChild(option);
+                    });
+                }
+            }
+        }
+
+        // Initialize if brand is selected
+        if (currentBrand) {
+            populateModels(currentBrand, currentModel);
+        }
+
+        // Handle changes
+        brandSelect.addEventListener('change', function() {
+            populateModels(this.value);
+        });
+    </script>
 </div>
 @endsection

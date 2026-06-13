@@ -103,11 +103,14 @@ class ShopController extends Controller
     {
         $title = 'Job Listings';
 
-        $appliedJobs = JobListings::latest()->get();
+        // Eager load relationships to prevent N+1 queries
+        $appliedJobs = JobListings::with(['service', 'userInfo'])
+            ->latest()
+            ->get();
 
-        $appliedJobs = JobListings::with('service')->latest()->get();
+        $brandsWithModels = Management::where('role', 'Brand')->with('child')->get();
 
-        $data = compact('title', 'appliedJobs');
+        $data = compact('title', 'appliedJobs', 'brandsWithModels');
 
         return view('shop.applied-jobs.index', $data);
     }
@@ -349,7 +352,8 @@ class ShopController extends Controller
     {
         $title = 'Add Service';
 
-        $data = compact('title');
+        $brandsWithModels = Management::where('role', 'Brand')->with('child')->get();
+        $data = compact('title', 'brandsWithModels');
 
         return view('shop.services.create', $data);
     }
@@ -436,8 +440,10 @@ class ShopController extends Controller
         $service = Service::where('id', $id)->first();
 
         $metas = ServiceMeta::where('services_id', $service->id)->get();
+        
+        $brandsWithModels = Management::where('role', 'Brand')->with('child')->get();
 
-        return view('shop.services.edit', compact('title', 'service', 'metas'));
+        return view('shop.services.edit', compact('title', 'service', 'metas', 'brandsWithModels'));
     }
 
 
@@ -664,9 +670,12 @@ class ShopController extends Controller
 
         $shopid = session()->get('shop_id');
 
-
-        $appliedJobs = JobApplications::where('shop_id', $shopid)->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])->latest()->get();
-
+        // Eager load userInfo and jobInfo to prevent N+1 queries on orders list
+        $appliedJobs = JobApplications::with(['userInfo', 'jobInfo'])
+            ->where('shop_id', $shopid)
+            ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])
+            ->latest()
+            ->get();
 
         $data = compact('title', 'appliedJobs');
 
