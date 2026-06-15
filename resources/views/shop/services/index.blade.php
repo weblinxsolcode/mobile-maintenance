@@ -90,15 +90,12 @@
                                                 </td>
                                                 <td>
                                                     @php
-
                                                         $status = $item->status;
                                                         if ($status == 'active') {
                                                             $status = 'Active';
                                                         } elseif ($status == 'pending') {
                                                             $status = 'Pending';
-
                                                         }
-
                                                     @endphp
 
                                                     <span
@@ -110,8 +107,8 @@
 
                                                 <td>
 
-                                                    <button class="btn btn-sm bg-secondary text-white" data-bs-toggle="modal"
-                                                        data-bs-target="#updateStatus{{ $item->id }}">
+                                                    <button type="button" class="btn btn-sm bg-secondary text-white"
+                                                        onclick="openModal('updateStatus{{ $item->id }}')">
                                                         <i class="fa-solid fa-circle-check"></i>
                                                         Update Status
                                                     </button>
@@ -125,8 +122,8 @@
                                                     </a>
 
 
-                                                    <button class="btn btn-sm bg-danger text-white" data-bs-toggle="modal"
-                                                        data-bs-target="#deleteManagement{{ $item->id }}">
+                                                    <button type="button" class="btn btn-sm bg-danger text-white"
+                                                        onclick="openModal('deleteManagement{{ $item->id }}')">
                                                         <i class="fe fe-trash"></i>
                                                         Delete
                                                     </button>
@@ -134,92 +131,6 @@
                                                 </td>
 
                                             </tr>
-                                            <div class="modal fade" id="deleteManagement{{ $item->id }}" tabindex="-1"
-                                                aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h1 class="modal-title fs-5" id="exampleModalLabel">
-                                                                Delete |
-                                                                {{ ucfirst($item->title ?? 'N/A') }}
-                                                            </h1>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                                aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body text-center">
-                                                            <p class="mb-0">Are you sure you want to delete this
-                                                                Services?
-                                                            </p>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">Close</button>
-                                                            <a href="{{ route('shop.services.delete', $item->id) }}"
-                                                                class="btn btn-danger">
-                                                                Yes
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="modal fade" id="updateStatus{{ $item->id }}" tabindex="-1"
-                                                aria-labelledby="updateStatusLabel{{ $item->id }}" aria-hidden="true">
-
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-
-                                                        <form action="{{ route('shop.services.status', $item->id) }}"
-                                                            method="POST">
-                                                            @csrf
-
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title" id="updateStatusLabel{{ $item->id }}">
-                                                                    Update Status | {{ ucfirst($item->title ?? 'N/A') }}
-                                                                </h5>
-
-                                                                <button type="button" class="btn-close"
-                                                                    data-bs-dismiss="modal"></button>
-                                                            </div>
-
-                                                            <div class="modal-body">
-
-                                                                <p class="mb-3 text-center">
-                                                                    Select new status for this service
-                                                                </p>
-
-                                                                <select name="status" class="form-control" required>
-                                                                    <option value="active" {{ $item->status == 'active' ? 'selected' : '' }}>
-                                                                        Active
-                                                                    </option>
-
-                                                                    <option value="pending" {{ $item->status == 'pending' ? 'selected' : '' }}>
-                                                                        Pending
-                                                                    </option>
-
-                                                                    <option value="inactive" {{ $item->status == 'inactive' ? 'selected' : '' }}>
-                                                                        Inactive
-                                                                    </option>
-                                                                </select>
-
-                                                            </div>
-
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
-                                                                    data-bs-dismiss="modal">
-                                                                    Cancel
-                                                                </button>
-
-                                                                <button type="submit" class="btn btn-primary">
-                                                                    Update Status
-                                                                </button>
-                                                            </div>
-
-                                                        </form>
-
-                                                    </div>
-                                                </div>
-                                            </div>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -230,4 +141,113 @@
             </div>
         </div>
     </div>
+
+    {{-- ============================================================
+    ALL MODALS — outside table/tbody (iOS Safari fix)
+    ============================================================ --}}
+    @foreach ($servicesList as $item)
+
+        {{-- Delete Modal --}}
+        <div class="modal fade" id="deleteManagement{{ $item->id }}" tabindex="-1" aria-labelledby="deleteLabel{{ $item->id }}"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="deleteLabel{{ $item->id }}">
+                            Delete |
+                            {{ ucfirst($item->title ?? 'N/A') }}
+                        </h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <p class="mb-0">Are you sure you want to delete this Services?
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <a href="{{ route('shop.services.delete', $item->id) }}" class="btn btn-danger">
+                            Yes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Update Status Modal --}}
+        <div class="modal fade" id="updateStatus{{ $item->id }}" tabindex="-1"
+            aria-labelledby="updateStatusLabel{{ $item->id }}" aria-hidden="true">
+
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <form action="{{ route('shop.services.status', $item->id) }}" method="POST">
+                        @csrf
+
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="updateStatusLabel{{ $item->id }}">
+                                Update Status | {{ ucfirst($item->title ?? 'N/A') }}
+                            </h5>
+
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <p class="mb-3 text-center">
+                                Select new status for this service
+                            </p>
+
+                            <select name="status" class="form-control" required>
+                                <option value="active" {{ $item->status == 'active' ? 'selected' : '' }}>
+                                    Active
+                                </option>
+
+                                <option value="pending" {{ $item->status == 'pending' ? 'selected' : '' }}>
+                                    Pending
+                                </option>
+
+                                <option value="inactive" {{ $item->status == 'inactive' ? 'selected' : '' }}>
+                                    Inactive
+                                </option>
+                            </select>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+
+                            <button type="submit" class="btn btn-primary">
+                                Update Status
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    @endforeach
+
+    <script>
+        /**
+         * iOS Safari safe modal opener.
+         * data-bs-toggle on <button> inside <table> breaks on iOS Safari.
+         * This JS approach works cross-platform.
+         */
+        function openModal(modalId) {
+            var modalEl = document.getElementById(modalId);
+            if (!modalEl) return;
+            // Bootstrap 5
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            } else if (typeof $ !== 'undefined') {
+                // Bootstrap 4 fallback
+                $(modalEl).modal('show');
+            }
+        }
+    </script>
 @endsection
