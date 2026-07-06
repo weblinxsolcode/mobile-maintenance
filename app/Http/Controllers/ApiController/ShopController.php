@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\ApiController;
 
 use App\Http\Controllers\Controller;
+use App\Models\Service;
 use App\Models\Settings;
 use App\Models\shop;
 use App\Models\User;
@@ -10,6 +11,7 @@ use App\Services\FileHelper;
 use App\Services\userServices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use PhpParser\Builder\Function_;
 
 class ShopController extends Controller
 {
@@ -48,7 +50,7 @@ class ShopController extends Controller
         }
 
         $user = User::where('id', $usersID);
-        if (! $user) {
+        if (!$user) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found',
@@ -91,7 +93,20 @@ class ShopController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $shops,
+            'data   ' => $shops,
+        ], 200);
+    }
+
+    // Api For Get All Shop
+    public Function getAllService()
+    {
+        $services = Service::with('metas')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $services,
         ], 200);
     }
 
@@ -111,7 +126,7 @@ class ShopController extends Controller
         }
         $shops = shop::where('id', $request->shop_id)->first();
 
-        if (! $shops) {
+        if (!$shops) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No shops found',

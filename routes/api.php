@@ -31,6 +31,7 @@ Route::post('/social-login', [AuthController::class, 'socialUser']);
 Route::post('/create-shop', [ShopController::class, 'createShop']);
 Route::post('get-shop', [ShopController::class, 'getShop']);
 Route::get('get-all-shop', [ShopController::class, 'getAllShop']);
+Route::post('get-all-service', [ShopController::class, 'getAllService']);
 Route::post('get-near-by-shop', [ShopController::class, 'getNearByShops']);
 
 // API For Get Management
