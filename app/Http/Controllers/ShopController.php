@@ -367,7 +367,7 @@ class ShopController extends Controller
         $shopid = session()->get('shop_id');
         $ServiceIds = ShopService::where('shop_id', $shopid)->pluck('services_id');
 
-        $servicesList = Service::whereIn('id', $ServiceIds)->latest()->get();
+        $servicesList = Service::whereIn('id', $ServiceIds)->orderBy('sort_order', 'asc')->latest()->get();
         $servicesList->load(['serviceMetas']);
 
         $data = compact('title', 'servicesList');
@@ -569,6 +569,17 @@ class ShopController extends Controller
 
 
 
+    public function reorderServices(Request $request)
+    {
+        $orders = $request->input('orders', []);
+
+        foreach ($orders as $index => $id) {
+            Service::where('id', $id)->update(['sort_order' => $index]);
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Services reordered successfully.']);
+    }
+
     public function technicians()
     {
         $title = 'Technicians';
@@ -701,6 +712,7 @@ class ShopController extends Controller
         $appliedJobs = JobApplications::with(['userInfo', 'jobInfo'])
             ->where('shop_id', $shopid)
             ->whereIn('status', ['accepted', 'under_review', 'under_repair', 'ready_for_pickup', 'delivered'])
+            ->orderBy('sort_order', 'asc')
             ->latest()
             ->get();
 
@@ -754,6 +766,17 @@ class ShopController extends Controller
         }
 
         return redirect()->back()->with('success', 'Job deleted successfully');
+    }
+
+    public function reorderOrders(Request $request)
+    {
+        $orders = $request->input('orders', []);
+
+        foreach ($orders as $index => $id) {
+            JobApplications::where('id', $id)->update(['sort_order' => $index]);
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Orders reordered successfully.']);
     }
 
     public function reviews()

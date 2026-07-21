@@ -64,6 +64,9 @@ Route::prefix('shop')->group(function () {
             // Orders Delete
             Route::get('/delete/{id}', [ShopController::class, 'ordersDelete'])->name('shop.orders.delete');
 
+            // Reorder Orders
+            Route::post('/reorder', [ShopController::class, 'reorderOrders'])->name('shop.orders.reorder');
+
         });
 
         // Assigned Jobs
@@ -141,6 +144,9 @@ Route::prefix('shop')->group(function () {
             Route::post('/update/{id}', [ShopController::class, 'servicesUpdate'])->name('shop.services.update');
 
             Route::post('/status/{id}', [ShopController::class, 'servicesStatusUpdate'])->name('shop.services.status');
+
+            // Reorder Services
+            Route::post('/reorder', [ShopController::class, 'reorderServices'])->name('shop.services.reorder');
 
         });
         // Brands

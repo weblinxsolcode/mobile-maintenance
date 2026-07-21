@@ -98,11 +98,11 @@ class ShopController extends Controller
     }
 
     // Api For Get All Shop
-    public Function getAllService()
+    public function getAllService()
     {
         $services = Service::with('metas')
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+            ->orderBy('sort_order', 'asc')
+            ->get();
 
         return response()->json([
             'status' => 'success',

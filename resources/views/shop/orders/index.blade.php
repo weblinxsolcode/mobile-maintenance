@@ -47,10 +47,10 @@
                                             <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="sortable-body">
                                         @foreach ($appliedJobs as $item)
-                                            <tr>
-                                                <td>{{ $loop->iteration }}</td>
+                                            <tr data-id="{{ $item->id }}" style="cursor: grab;">
+                                                <td class="drag-handle"><i class="fa fa-arrows-v text-muted me-2"></i> {{ $loop->iteration }}</td>
 
                                                 {{-- User Info --}}
                                                 <td>
@@ -187,6 +187,7 @@
 
     @include('shop.orders.partials.modals')
 
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         function filterOrdersTable() {
             const query = document.getElementById('ordersSearchInput').value.toLowerCase();
@@ -200,5 +201,39 @@
             const countEl = document.getElementById('ordersResultCount');
             countEl.textContent = query ? (visible + ' result(s) found') : '';
         }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var el = document.getElementById('sortable-body');
+            if (el) {
+                Sortable.create(el, {
+                    animation: 150,
+                    ghostClass: 'bg-light',
+                    onEnd: function(evt) {
+                        var order = [];
+                        document.querySelectorAll('#sortable-body tr').forEach(function(row) {
+                            if (row.getAttribute('data-id')) {
+                                order.push(row.getAttribute('data-id'));
+                            }
+                        });
+
+                        fetch('{{ route('shop.orders.reorder') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ orders: order })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                console.log('Reordered successfully');
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                    }
+                });
+            }
+        });
     </script>
 @endsection

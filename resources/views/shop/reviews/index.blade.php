@@ -31,7 +31,7 @@
                                             <th>Rating</th>
                                             <th>Review</th>
                                             <th>Date</th>
-                                            {{-- <th>Action</th> --}}
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -96,8 +96,6 @@
                                                 </td>
 
 
-
-
                                                 <td>
                                                     {{ ucfirst(Str::limit($item->review ?? 'N/A', 50)) }}
                                                 </td>
@@ -106,11 +104,7 @@
                                                     {{ \Carbon\Carbon::parse($item->created_at)->format('d-m-Y') }}
                                                 </td>
 
-
-                                                {{-- <td>
-
-
-
+                                                <td>
 
                                                     <button class="btn btn-sm bg-danger text-white" data-bs-toggle="modal"
                                                         data-bs-target="#deleteJob{{ $item->id }}">
@@ -118,7 +112,7 @@
                                                         Delete
                                                     </button>
 
-                                                </td> --}}
+                                                </td>
 
                                             </tr>
                                         @endforeach
@@ -150,7 +144,7 @@
                             aria-label="Close"></button>
                     </div>
                     <div class="modal-body text-center">
-                        Are you sure you want to delete this Transaction?
+                        Are you sure you want to delete this review?
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary"
