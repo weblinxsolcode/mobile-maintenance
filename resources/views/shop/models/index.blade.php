@@ -51,97 +51,16 @@
                                                     </td>
 
                                                     <td>
-                                                        <button class="btn btn-sm bg-info text-white" data-bs-toggle="modal"
-                                                            data-bs-target="#editModel{{ $item->id }}">
+                                                        <button class="btn btn-sm bg-info text-white" onclick="openModal('editModel{{ $item->id }}')">
                                                             <i class="fe fe-edit"></i> Edit
                                                         </button>
                                                         <button class="btn btn-sm bg-danger text-white"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#deleteManagement{{ $item->id }}">
+                                                            onclick="openModal('deleteManagement{{ $item->id }}')">
                                                             <i class="fe fe-trash"></i>
                                                             Delete
                                                         </button>
-
                                                     </td>
-
                                                 </tr>
-                                                {{-- Delete Modal --}}
-                                                <div class="modal fade" id="deleteManagement{{ $item->id }}"
-                                                    tabindex="-1"
-                                                    aria-labelledby="deleteManagementLabel{{ $item->id }}"
-                                                    aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title"
-                                                                    id="deleteManagementLabel{{ $item->id }}">Confirm
-                                                                    Deletion| {{ ucfirst($item->name) }}</h5>
-                                                                <button type="button" class="btn-close"
-                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body text-center">
-                                                                Are you sure you want to delete this brand?
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
-                                                                    data-bs-dismiss="modal">Cancel</button>
-                                                                <a href="{{ route('shop.brands.delete', $item->id) }}"
-                                                                    class="btn btn-danger">
-                                                                    Yes, Delete
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="modal fade" id="editModel{{ $item->id }}" tabindex="-1">
-                                                    <div class="modal-dialog">
-
-                                                        <form action="{{ route('shop.models.update', $item->id) }}"
-                                                            method="POST">
-                                                            @csrf
-                                                            @method('PUT')
-
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">Edit Model</h5>
-                                                                    <button type="button" class="btn-close"
-                                                                        data-bs-dismiss="modal"></button>
-                                                                </div>
-
-                                                                <div class="modal-body">
-
-                                                                    <!-- Brand Select -->
-                                                                    <label>Brand</label>
-                                                                    <select name="parent_id" class="form-control" required>
-                                                                        @foreach ($brands as $brand)
-                                                                            <option value="{{ $brand->id }}"
-                                                                                {{ $item->parent_id == $brand->id ? 'selected' : '' }}>
-                                                                                {{ $brand->name }}
-                                                                            </option>
-                                                                        @endforeach
-                                                                    </select>
-
-                                                                    <!-- Model Name -->
-                                                                    <label class="mt-2">Model Name</label>
-                                                                    <input type="text" name="name"
-                                                                        value="{{ $item->name }}" class="form-control"
-                                                                        required>
-
-                                                                </div>
-
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary"
-                                                                        data-bs-dismiss="modal">Cancel</button>
-                                                                    <button type="submit"
-                                                                        class="btn btn-success">Update</button>
-                                                                </div>
-
-                                                            </div>
-
-                                                        </form>
-
-                                                    </div>
-                                                </div>
                                             @endforeach
                                         </tbody>
                                     </table>
@@ -198,4 +117,96 @@
 
         </div>
     </div>
+    @foreach ($model as $item)
+        {{-- Delete Modal --}}
+        <div class="modal fade" id="deleteManagement{{ $item->id }}"
+            tabindex="-1"
+            aria-labelledby="deleteManagementLabel{{ $item->id }}"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"
+                            id="deleteManagementLabel{{ $item->id }}">Confirm
+                            Deletion| {{ ucfirst($item->name) }}</h5>
+                        <button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        Are you sure you want to delete this model?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <a href="{{ route('shop.models.delete', $item->id) }}"
+                            class="btn btn-danger">
+                            Yes, Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="editModel{{ $item->id }}" tabindex="-1">
+            <div class="modal-dialog">
+
+                <form action="{{ route('shop.models.update', $item->id) }}"
+                    method="POST">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Model</h5>
+                            <button type="button" class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            <!-- Brand Select -->
+                            <label>Brand</label>
+                            <select name="parent_id" class="form-control" required>
+                                @foreach ($brands as $brand)
+                                    <option value="{{ $brand->id }}"
+                                        {{ $item->parent_id == $brand->id ? 'selected' : '' }}>
+                                        {{ $brand->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <!-- Model Name -->
+                            <label class="mt-2">Model Name</label>
+                            <input type="text" name="name"
+                                value="{{ $item->name }}" class="form-control"
+                                required>
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit"
+                                class="btn btn-success">Update</button>
+                        </div>
+
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    @endforeach
+
+    <script>
+        function openModal(modalId) {
+            var modalEl = document.getElementById(modalId);
+            if (!modalEl) return;
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            } else if (typeof $ !== 'undefined') {
+                $(modalEl).modal('show');
+            }
+        }
+    </script>
 @endsection

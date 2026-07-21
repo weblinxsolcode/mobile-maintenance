@@ -47,7 +47,7 @@ class JobController extends Controller
 
         $checkingUser = User::find($userID);
 
-        if (! $checkingUser) {
+        if (!$checkingUser) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found',
@@ -125,7 +125,7 @@ class JobController extends Controller
 
         $checkingUser = User::find($userID);
 
-        if (! $checkingUser) {
+        if (!$checkingUser) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User not found',
@@ -232,7 +232,7 @@ class JobController extends Controller
         ], 200);
     }
 
-    
+
 
     public function getJobDetails(Request $request)
     {
@@ -256,7 +256,7 @@ class JobController extends Controller
 
         // $job = JobListings::with('jobApplications', 'userInfo')->find($CodeID);
 
-        if (! $job) {
+        if (!$job) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Job not found',
@@ -288,7 +288,7 @@ class JobController extends Controller
 
         $application = JobApplications::find($applicationID);
 
-        if (! $application) {
+        if (!$application) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Application not found',
@@ -335,7 +335,7 @@ class JobController extends Controller
 
         $job = JobListings::where('user_id', $userID)->where('code', $code)->with('jobApplications', 'userInfo')->first();
 
-        if (! $job) {
+        if (!$job) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Job not found',
@@ -373,7 +373,7 @@ class JobController extends Controller
 
         $job = JobListings::find($jobID);
 
-        if (! $job) {
+        if (!$job) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Job not found',
@@ -384,7 +384,7 @@ class JobController extends Controller
             ->whereIn('status', ['accepted', 'completed', 'delivered'])
             ->first();
 
-        if (! $getAcceptedOffer) {
+        if (!$getAcceptedOffer) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No accepted offer found for this job',
@@ -472,7 +472,7 @@ class JobController extends Controller
         $userID = $request->user_id;
 
         $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo')
-            ->latest()->get();
+            ->orderBy('sort_order', 'asc')->get();
 
         return response()->json([
             'status' => 'success',

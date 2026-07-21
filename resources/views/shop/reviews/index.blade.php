@@ -121,31 +121,6 @@
                                                 </td> --}}
 
                                             </tr>
-                                            {{-- Delete Modal --}}
-                                            <div class="modal fade" id="deleteJob{{ $item->id }}" tabindex="-1"
-                                                aria-labelledby="deleteJobLabel{{ $item->id }}" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="deleteJobLabel{{ $item->id }}">
-                                                                Confirm Deletion</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                                aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body text-center">
-                                                            Are you sure you want to delete this Transaction?
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">Cancel</button>
-
-                                                            <a href="{{ route('shop.reviews.delete', $item->id) }}"
-                                                                class="btn btn-danger">Delete</a>
-
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -162,4 +137,31 @@
             </div>
         </div>
     </div>
+    @foreach ($reviewList as $item)
+        {{-- Delete Modal --}}
+        <div class="modal fade" id="deleteJob{{ $item->id }}" tabindex="-1"
+            aria-labelledby="deleteJobLabel{{ $item->id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteJobLabel{{ $item->id }}">
+                            Confirm Deletion</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        Are you sure you want to delete this Transaction?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+
+                        <a href="{{ route('shop.reviews.delete', $item->id) }}"
+                            class="btn btn-danger">Delete</a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
 @endsection

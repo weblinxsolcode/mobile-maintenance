@@ -105,6 +105,7 @@ class ShopController extends Controller
 
         // Eager load relationships to prevent N+1 queries
         $appliedJobs = JobListings::with(['service', 'userInfo'])
+            ->orderBy('sort_order', 'asc')
             ->latest()
             ->get();
 
@@ -145,10 +146,36 @@ class ShopController extends Controller
 
     public function appliedJobsDelete($id)
     {
-        JobListings::where('id', $id)->delete();
+        $job = JobListings::find($id);
+        if ($job) {
+            $userID = $job->user_id;
+            if ($userID) {
+                $title = 'Job Deleted';
+                $description = 'Your job listing has been deleted.';
+                customBlock::generateNotificaions($userID, $title, $description, $this->database);
+                customBlock::pushFireBaseData('notificationLogs', $this->database, [
+                    'user_id' => $userID,
+                    'title' => $title,
+                    'description' => $description,
+                    'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+                ]);
+            }
+            $job->delete();
+        }
 
         return redirect()->back()->with('success', 'Job deleted successfully');
     }
+    public function reorderAppliedJobs(Request $request)
+    {
+        $orders = $request->input('orders', []);
+
+        foreach ($orders as $index => $id) {
+            JobListings::where('id', $id)->update(['sort_order' => $index]);
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Job listings reordered successfully.']);
+    }
+
     public function submitOffer(Request $request, $id)
     {
         $request->validate([
@@ -709,7 +736,22 @@ class ShopController extends Controller
 
     public function ordersDelete($id)
     {
-        JobApplications::where('id', $id)->delete();
+        $offer = JobApplications::find($id);
+        if ($offer) {
+            $userID = $offer->user_id;
+            if ($userID) {
+                $title = 'Job Offer Deleted';
+                $description = 'Your job offer has been deleted.';
+                customBlock::generateNotificaions($userID, $title, $description, $this->database);
+                customBlock::pushFireBaseData('notificationLogs', $this->database, [
+                    'user_id' => $userID,
+                    'title' => $title,
+                    'description' => $description,
+                    'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+                ]);
+            }
+            $offer->delete();
+        }
 
         return redirect()->back()->with('success', 'Job deleted successfully');
     }
@@ -1034,6 +1076,12 @@ class ShopController extends Controller
         return redirect()->back()->with('success', 'Model updated successfully');
     }
 
+    public function modelsDelete($id)
+    {
+        Management::where('id', $id)->delete();
+        return redirect()->back()->with('success', 'Model deleted successfully');
+    }
+
     public function saveReceipt(Request $request)
     {
         $request->validate([
@@ -1233,6 +1281,14 @@ class ShopController extends Controller
 
         if ($result['success']) {
             $msg = "System successfully restored from backup! (Safety backup compiled as '{$result['safety_backup']}' in {$result['duration']})";
+            
+            customBlock::pushFireBaseData('notificationLogs', $this->database, [
+                'user_id' => 'all',
+                'title' => 'System Restored',
+                'description' => 'System restored from backup.',
+                'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            ]);
+
             return redirect()->back()->with('success', $msg);
         } else {
             return redirect()->back()->with('error', "Restore processing failed: {$result['error']}");
@@ -1274,6 +1330,14 @@ class ShopController extends Controller
 
         if ($result['success']) {
             $msg = "System successfully restored from the uploaded file! (Safety backup compiled as '{$result['safety_backup']}' in {$result['duration']})";
+            
+            customBlock::pushFireBaseData('notificationLogs', $this->database, [
+                'user_id' => 'all',
+                'title' => 'System Restored',
+                'description' => 'System restored from backup.',
+                'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            ]);
+
             return redirect()->back()->with('success', $msg);
         } else {
             return redirect()->back()->with('error', "Restore processing failed: {$result['error']}");

@@ -62,67 +62,6 @@
                                                     </td>
 
                                                 </tr>
-                                                {{-- Delete Modal --}}
-                                                <div class="modal fade" id="deleteManagement{{ $item->id }}"
-                                                    tabindex="-1"
-                                                    aria-labelledby="deleteManagementLabel{{ $item->id }}"
-                                                    aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title"
-                                                                    id="deleteManagementLabel{{ $item->id }}">Confirm
-                                                                    Deletion| {{ ucfirst($item->name) }}</h5>
-                                                                <button type="button" class="btn-close"
-                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body text-center">
-                                                                Are you sure you want to delete this brand?
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
-                                                                    data-bs-dismiss="modal">Cancel</button>
-                                                                <a href="{{ route('shop.brands.delete', $item->id) }}"
-                                                                    class="btn btn-danger">
-                                                                    Yes, Delete
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!-- Edit Brand Modal -->
-                                                <div class="modal fade" id="editBrand{{ $item->id }}" tabindex="-1">
-                                                    <div class="modal-dialog">
-                                                        <form action="{{ route('shop.brands.update', $item->id) }}"
-                                                            method="POST">
-                                                            @csrf
-                                                            @method('PUT')
-
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">Edit Brand</h5>
-                                                                    <button type="button" class="btn-close"
-                                                                        data-bs-dismiss="modal"></button>
-                                                                </div>
-
-                                                                <div class="modal-body">
-                                                                    <label>Brand Name</label>
-                                                                    <input type="text" name="name"
-                                                                        value="{{ $item->name }}" class="form-control"
-                                                                        required>
-                                                                </div>
-
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary"
-                                                                        data-bs-dismiss="modal">Cancel</button>
-                                                                    <button type="submit"
-                                                                        class="btn btn-success">Update</button>
-                                                                </div>
-                                                            </div>
-
-                                                        </form>
-                                                    </div>
-                                                </div>
                                             @endforeach
                                         </tbody>
                                     </table>
@@ -164,5 +103,71 @@
 
             </form>
         </div>
+        </div>
     </div>
+
+    @foreach ($brand as $item)
+        {{-- Delete Modal --}}
+        <div class="modal fade" id="deleteManagement{{ $item->id }}"
+            tabindex="-1"
+            aria-labelledby="deleteManagementLabel{{ $item->id }}"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"
+                            id="deleteManagementLabel{{ $item->id }}">Confirm
+                            Deletion| {{ ucfirst($item->name) }}</h5>
+                        <button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        Are you sure you want to delete this brand?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <a href="{{ route('shop.brands.delete', $item->id) }}"
+                            class="btn btn-danger">
+                            Yes, Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Edit Brand Modal -->
+        <div class="modal fade" id="editBrand{{ $item->id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <form action="{{ route('shop.brands.update', $item->id) }}"
+                    method="POST">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Brand</h5>
+                            <button type="button" class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <label>Brand Name</label>
+                            <input type="text" name="name"
+                                value="{{ $item->name }}" class="form-control"
+                                required>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit"
+                                class="btn btn-success">Update</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    @endforeach
+
 @endsection

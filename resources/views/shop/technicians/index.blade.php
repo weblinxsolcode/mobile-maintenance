@@ -113,33 +113,6 @@
                                                 </td>
 
                                             </tr>
-                                            <div class="modal fade" id="deleteManagement{{ $item->id }}" tabindex="-1"
-                                                aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h1 class="modal-title fs-5" id="exampleModalLabel">
-                                                                Delete |
-                                                                {{ ucfirst($item->full_name ?? 'N/A') }}</h1>   
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                                aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body text-center">
-                                                            <p class="mb-0">Are you sure you want to delete this
-                                                                user?
-                                                            </p>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-bs-dismiss="modal">Close</button>
-                                                            <a href="{{ route('shop.technicians.delete', $item->id) }}"
-                                                                class="btn btn-danger">
-                                                                Yes
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -150,4 +123,33 @@
             </div>
         </div>
     </div>
+    @foreach ($techniciansList as $item)
+        <div class="modal fade" id="deleteManagement{{ $item->id }}" tabindex="-1"
+            aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">
+                            Delete |
+                            {{ ucfirst($item->full_name ?? 'N/A') }}</h1>   
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <p class="mb-0">Are you sure you want to delete this
+                            user?
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Close</button>
+                        <a href="{{ route('shop.technicians.delete', $item->id) }}"
+                            class="btn btn-danger">
+                            Yes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
 @endsection

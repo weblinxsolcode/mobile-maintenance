@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -10,9 +11,18 @@ Route::get('/', function () {
     return redirect()->route('shop.dashboard');
 });
 
+Route::get('/migrate', function () {
+    Artisan::call('migrate');
+    return redirect()->back()->with('success', 'Database migrated successfully');
+});
+
 // Route For Shop
-include 'shop.php';    
+include 'shop.php';
 // Route For Shop
+
+// Route For Admin
+include 'admin.php';
+// Route For Admin
 
 // Route For Technician
 include 'technician.php';
@@ -27,11 +37,11 @@ Route::get('/track/{id}', function ($id) {
     if (!$job) {
         abort(404, 'Sorry, this maintenance job could not be found.');
     }
-    
+
     // Fetch archived receipt snapshots for check-in and final
     $checkInReceipt = ReceiptRecord::where('job_application_id', $id)->where('receipt_type', 'check_in')->first();
     $finalReceipt = ReceiptRecord::where('job_application_id', $id)->where('receipt_type', 'final')->first();
-    
+
     $title = "Track Repair Progress - Job #" . $id;
     return view('customer.track', compact('job', 'checkInReceipt', 'finalReceipt', 'title'));
 })->name('customer.track');

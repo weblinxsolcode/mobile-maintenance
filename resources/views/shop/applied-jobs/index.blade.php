@@ -36,7 +36,7 @@
                     <div class="table-responsive">
                         <div class="tab-content pt-0" bis_skin_checked="1">
                             <div class="tab-pane show active" id="tab1" bis_skin_checked="1">
-                                <table class="datatable table table-hover table-center mb-0">
+                                <table class="datatable table table-hover table-center mb-0" id="sortableTable">
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -48,10 +48,10 @@
                                             <th>Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody id="sortable-body">
                                         @foreach ($appliedJobs as $item)
-                                        <tr>
-                                            <td>{{ $loop->iteration }}</td>
+                                        <tr data-id="{{ $item->id }}" style="cursor: grab;">
+                                            <td class="drag-handle"><i class="fa fa-arrows-v text-muted me-2"></i> {{ $loop->iteration }}</td>
 
 
 
@@ -385,5 +385,40 @@
     </div>
 </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var el = document.getElementById('sortable-body');
+        if (el) {
+            Sortable.create(el, {
+                animation: 150,
+                ghostClass: 'bg-light',
+                onEnd: function(evt) {
+                    var order = [];
+                    document.querySelectorAll('#sortable-body tr').forEach(function(row) {
+                        order.push(row.getAttribute('data-id'));
+                    });
+
+                    // Send AJAX request to update sort order
+                    fetch('{{ route('shop.appliedJobs.reorder') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ orders: order })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            console.log('Reordered successfully');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            });
+        }
+    });
+</script>
 @include('shop.applied-jobs.partials.modals')
 @endsection

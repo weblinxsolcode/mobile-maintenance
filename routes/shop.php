@@ -44,6 +44,9 @@ Route::prefix('shop')->group(function () {
             // Submit Offer Update
             Route::put('/submit-offer-update/{id}', [ShopController::class, 'submitOfferUpdate'])->name('shop.appliedJobs.submitOfferUpdate');
 
+            // Reorder Applied Jobs
+            Route::post('/reorder', [ShopController::class, 'reorderAppliedJobs'])->name('shop.appliedJobs.reorder');
+
         });
         
         // Orders Jobs
@@ -160,6 +163,7 @@ Route::prefix('shop')->group(function () {
             Route::post('/store', [ShopController::class, 'storeModel'])->name('shop.models.store');
 
             Route::put('/update/{id}', [ShopController::class, 'updateModel'])->name('shop.models.update');
+            Route::get('/delete/{id}', [ShopController::class, 'modelsDelete'])->name('shop.models.delete');
         });
         // Profile
         Route::get('/profile', [ShopController::class, 'profile'])->name('shop.profile');
