@@ -102,7 +102,7 @@ class ShopController extends Controller
     {
         $services = Service::with('metas')
             ->orderBy('sort_order', 'asc')
-            ->get();
+            ->paginate(10);
 
         return response()->json([
             'status' => 'success',
