@@ -100,9 +100,15 @@ class ShopController extends Controller
     // Api For Get All Shop
     public function getAllService()
     {
-        $services = Service::with('metas')
+        $services = Service::with('metas', 'shops')
             ->orderBy('sort_order', 'asc')
             ->paginate(10);
+
+        $services->getCollection()->transform(function ($service) {
+            $service->shop = $service->shops->select('id', 'title', 'description', 'address', 'latitude', 'longitude')->first();
+            unset($service->shops);
+            return $service;
+        });
 
         return response()->json([
             'status' => 'success',

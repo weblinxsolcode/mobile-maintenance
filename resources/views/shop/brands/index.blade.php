@@ -103,7 +103,6 @@
 
             </form>
         </div>
-        </div>
     </div>
 
     @foreach ($brand as $item)

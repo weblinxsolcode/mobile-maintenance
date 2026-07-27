@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Service extends Model
-{   
+{
     protected $fillable = [
         'title',
         'description',
@@ -16,7 +16,7 @@ class Service extends Model
     public function shops()
     {
         return $this->belongsToMany(
-            Shop::class,
+            shop::class,
             'shop_services',
             'services_id',
             'shop_id'
