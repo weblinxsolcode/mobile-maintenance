@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Admin;
 use App\Models\shop;
 use App\Models\User;
+use App\Models\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -174,5 +175,68 @@ class AdminController extends Controller
         $shopItem->status = $shopItem->status === 'active' ? 'pending' : 'active';
         $shopItem->save();
         return redirect()->back()->with('success', 'Shop status updated.');
+    }
+
+    // =========================================================
+    //  SETTINGS
+    // =========================================================
+
+    public function settings()
+    {
+        $title = 'Admin Settings';
+        $admin = Admin::findOrFail(session('admin_id'));
+        return view('admin.settings.index', compact('title', 'admin'));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $admin = Admin::findOrFail(session('admin_id'));
+
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:admins,email,' . $admin->id,
+            'password' => 'nullable|min:6|confirmed',
+        ]);
+
+        $admin->name  = $request->name;
+        $admin->email = $request->email;
+        if ($request->filled('password')) {
+            $admin->password = Hash::make($request->password);
+        }
+        $admin->save();
+
+        return redirect()->back()->with('success', 'Profile settings updated successfully.');
+    }
+
+    // =========================================================
+    //  APP SETTINGS
+    // =========================================================
+
+    public function appSettings()
+    {
+        $title = 'App Settings';
+        $settings = Settings::first() ?? new Settings();
+        return view('admin.app_settings.index', compact('title', 'settings'));
+    }
+
+    public function updateAppSettings(Request $request)
+    {
+        $request->validate([
+            'google_api_key'      => 'nullable|string',
+            'near_by_location'    => 'nullable|string',
+            'privacy_policy'      => 'nullable|string',
+            'terms_and_condition' => 'nullable|string',
+            'about_us'            => 'nullable|string',
+        ]);
+
+        $settings = Settings::first();
+        if (!$settings) {
+            $settings = new Settings();
+        }
+
+        $settings->fill($request->all());
+        $settings->save();
+
+        return redirect()->back()->with('success', 'App settings updated successfully.');
     }
 }

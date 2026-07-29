@@ -212,6 +212,17 @@
                class="nav-link-item {{ Route::is('admin.shops.*') ? 'active' : '' }}">
                 <i class="bi bi-shop"></i> Shops
             </a>
+
+            <div class="nav-section-title">Settings</div>
+            <a href="{{ route('admin.profile') }}"
+               class="nav-link-item {{ Route::is('admin.profile*') ? 'active' : '' }}">
+                <i class="bi bi-person-fill"></i> Profile
+            </a>
+            
+            <a href="{{ route('admin.app_settings') }}"
+               class="nav-link-item {{ Route::is('admin.app_settings*') ? 'active' : '' }}">
+                <i class="bi bi-gear-fill"></i> App Settings
+            </a>
         </div>
 
         <div style="padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.08);">

@@ -30,5 +30,13 @@ Route::prefix('admin')->group(function () {
             Route::get('/toggle-status/{id}', [AdminController::class, 'shopsToggleStatus'])->name('admin.shops.toggleStatus');
         });
 
+        // Profile
+        Route::get('/profile', [AdminController::class, 'settings'])->name('admin.profile');
+        Route::post('/profile', [AdminController::class, 'updateSettings'])->name('admin.profile.update');
+
+        // App Settings
+        Route::get('/app-settings', [AdminController::class, 'appSettings'])->name('admin.app_settings');
+        Route::post('/app-settings', [AdminController::class, 'updateAppSettings'])->name('admin.app_settings.update');
+
     });
 });
