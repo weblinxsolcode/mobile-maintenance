@@ -239,4 +239,122 @@ class AdminController extends Controller
 
         return redirect()->back()->with('success', 'App settings updated successfully.');
     }
+
+    // =========================================================
+    //  APP USERS
+    // =========================================================
+
+    public function appUsers()
+    {
+        $title        = 'App Users';
+        $users        = User::latest()->get();
+        $totalUsers   = $users->count();
+        $activeUsers  = $users->where('status', 'active')->count();
+        $blockedUsers = $users->where('status', 'blocked')->count();
+        $pendingUsers = $users->whereNotIn('status', ['active', 'blocked'])->count();
+
+        return view('admin.app_users.index', compact(
+            'title', 'users', 'totalUsers', 'activeUsers', 'blockedUsers', 'pendingUsers'
+        ));
+    }
+
+    public function appUsersCreate()
+    {
+        $title = 'Add App User';
+        return view('admin.app_users.create', compact('title'));
+    }
+
+    public function appUsersStore(Request $request)
+    {
+        $request->validate([
+            'full_name'         => 'required|string|max:255',
+            'email'             => 'nullable|email|unique:users,email',
+            'phone_number'      => 'nullable|string|max:20',
+            'password'          => 'required|min:6',
+            'status'            => 'required|string',
+            'profile_picture'   => 'nullable|image|max:2048',
+        ]);
+
+        $picPath = 'default.jpg';
+        if ($request->hasFile('profile_picture')) {
+            $file    = $request->file('profile_picture');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('userImages'), $fileName);
+            $picPath = $fileName;
+        }
+
+        User::create([
+            'full_name'         => $request->full_name,
+            'email'             => $request->email,
+            'phone_number'      => $request->phone_number,
+            'password'          => Hash::make($request->password),
+            'registration_type' => 'email',
+            'status'            => $request->status,
+            'profile_picture'   => $picPath,
+        ]);
+
+        return redirect()->route('admin.app_users.index')->with('success', 'User created successfully.');
+    }
+
+    public function appUsersEdit($id)
+    {
+        $title    = 'Edit App User';
+        $userItem = User::findOrFail($id);
+        return view('admin.app_users.edit', compact('title', 'userItem'));
+    }
+
+    public function appUsersUpdate(Request $request, $id)
+    {
+        $userItem = User::findOrFail($id);
+
+        $request->validate([
+            'full_name'         => 'required|string|max:255',
+            'email'             => 'nullable|email|unique:users,email,' . $id,
+            'phone_number'      => 'nullable|string|max:20',
+            'password'          => 'nullable|min:6',
+            'status'            => 'required|string',
+            'profile_picture'   => 'nullable|image|max:2048',
+        ]);
+
+        $picPath = $userItem->profile_picture;
+        if ($request->hasFile('profile_picture')) {
+            $file     = $request->file('profile_picture');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('userImages'), $fileName);
+            $picPath  = $fileName;
+        }
+
+        $data = [
+            'full_name'         => $request->full_name,
+            'email'             => $request->email,
+            'phone_number'      => $request->phone_number,
+            'status'            => $request->status,
+            'profile_picture'   => $picPath,
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $userItem->update($data);
+
+        return redirect()->route('admin.app_users.index')->with('success', 'User updated successfully.');
+    }
+
+    public function appUsersDelete($id)
+    {
+        $userItem = User::findOrFail($id);
+        $userItem->delete();
+        return redirect()->route('admin.app_users.index')->with('success', 'User deleted successfully.');
+    }
+
+    public function appUsersToggleBlock($id)
+    {
+        $user         = User::findOrFail($id);
+        $user->status = ($user->status === 'blocked') ? 'active' : 'blocked';
+        $user->save();
+
+        $msg = $user->status === 'blocked' ? 'User has been blocked.' : 'User has been unblocked.';
+        return redirect()->back()->with('success', $msg);
+    }
 }

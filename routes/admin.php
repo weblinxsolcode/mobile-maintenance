@@ -38,5 +38,14 @@ Route::prefix('admin')->group(function () {
         Route::get('/app-settings', [AdminController::class, 'appSettings'])->name('admin.app_settings');
         Route::post('/app-settings', [AdminController::class, 'updateAppSettings'])->name('admin.app_settings.update');
 
+        // App Users
+        Route::get('/app-users', [AdminController::class, 'appUsers'])->name('admin.app_users.index');
+        Route::get('/app-users/create', [AdminController::class, 'appUsersCreate'])->name('admin.app_users.create');
+        Route::post('/app-users/store', [AdminController::class, 'appUsersStore'])->name('admin.app_users.store');
+        Route::get('/app-users/edit/{id}', [AdminController::class, 'appUsersEdit'])->name('admin.app_users.edit');
+        Route::post('/app-users/update/{id}', [AdminController::class, 'appUsersUpdate'])->name('admin.app_users.update');
+        Route::get('/app-users/delete/{id}', [AdminController::class, 'appUsersDelete'])->name('admin.app_users.delete');
+        Route::get('/app-users/toggle-block/{id}', [AdminController::class, 'appUsersToggleBlock'])->name('admin.app_users.toggleBlock');
+
     });
 });
