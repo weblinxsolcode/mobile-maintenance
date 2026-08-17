@@ -59,23 +59,27 @@
                             </select>
                         </div>
 
-                        <!-- Address -->
+                        <!-- Address with Google Maps Autocomplete -->
                         <div class="col-12">
-                            <label class="form-label fw-semibold">Address</label>
-                            <input type="text" name="address" class="form-control rounded-3"
-                                   value="{{ old('address') }}" placeholder="Full shop address">
-                        </div>
-
-                        <!-- Latitude / Longitude -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Latitude</label>
-                            <input type="text" name="latitude" class="form-control rounded-3"
-                                   value="{{ old('latitude') }}" placeholder="e.g. 33.3152">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Longitude</label>
-                            <input type="text" name="longitude" class="form-control rounded-3"
-                                   value="{{ old('longitude') }}" placeholder="e.g. 44.3661">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-geo-alt-fill me-1" style="color:#6366f1;"></i>Address
+                            </label>
+                            <div class="position-relative">
+                                <input type="text"
+                                       id="address_input_create"
+                                       name="address"
+                                       class="form-control rounded-3 pe-5"
+                                       value="{{ old('address') }}"
+                                       placeholder="Type city or full address..."
+                                       autocomplete="off">
+                                <span id="address_loading_create"
+                                      class="position-absolute top-50 end-0 translate-middle-y me-3 d-none">
+                                    <span class="spinner-border spinner-border-sm text-secondary"></span>
+                                </span>
+                            </div>
+                            <!-- Hidden lat/lon (auto-filled by script) -->
+                            <input type="hidden" name="latitude"  id="latitude_create"  value="{{ old('latitude') }}">
+                            <input type="hidden" name="longitude" id="longitude_create" value="{{ old('longitude') }}">
                         </div>
 
                         <!-- Description -->
@@ -120,5 +124,40 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
+
+    // ─── Google Maps Places Autocomplete ────────────────────────────
+    function initGoogleAutocompleteCreate() {
+        var input    = document.getElementById('address_input_create');
+        var latField = document.getElementById('latitude_create');
+        var lngField = document.getElementById('longitude_create');
+
+        var autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['geocode']
+        });
+
+        // ✅ Dropdown se address select karo — lat/lon update
+        autocomplete.addListener('place_changed', function () {
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                // Select nahi kiya — lat/lon clear
+                latField.value = '';
+                lngField.value = '';
+                return;
+            }
+            latField.value = place.geometry.location.lat();
+            lngField.value = place.geometry.location.lng();
+        });
+
+        // ✅ Type karne par purani lat/lon clear
+        input.addEventListener('input', function () {
+            latField.value = '';
+            lngField.value = '';
+        });
+    }
 </script>
+
+@if(!empty($googleApiKey))
+<script src="https://maps.googleapis.com/maps/api/js?key={{ $googleApiKey }}&libraries=places&callback=initGoogleAutocompleteCreate" async defer></script>
+@endif
+
 @endsection

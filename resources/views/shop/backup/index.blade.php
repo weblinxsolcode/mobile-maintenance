@@ -437,7 +437,7 @@
                                 <table class="backup-table">
                                     <thead>
                                         <tr>
-                                            <th>Log ID</th>
+                                            <th>ID</th>
                                             <th>Backup Filename & size</th>
                                             <th>Trigger type</th>
                                             <th>Execution Status</th>
@@ -448,7 +448,7 @@
                                     <tbody>
                                         @forelse($logs as $log)
                                             <tr>
-                                                <td class="mono-text">#{{ $log->id }}</td>
+                                                <td class="mono-text">#{{ $loop->iteration }}</td>
                                                 <td>
                                                     <div class="fw-semibold text-truncate"
                                                         style="max-width: 180px; color: #1e293b;" title="{{ $log->filename }}">

@@ -1,19 +1,17 @@
 @extends('shop.layout.main')
 
 @section('section')
-    <div class="page-wrapper" bis_skin_checked="1" style="min-height: 503px;">
-        <div class="content container-fluid" bis_skin_checked="1">
+    <div class="page-wrapper" style="min-height: 503px;">
+        <div class="content container-fluid">
             <!-- Page Header -->
-            <div class="page-header" bis_skin_checked="1">
-                <div class="row" bis_skin_checked="1">
-                    <div class="col-sm-12" bis_skin_checked="1">
+            <div class="page-header">
+                <div class="row">
+                    <div class="col-sm-12">
                         <h3 class="page-title">{{ $title }}</h3>
-
                     </div>
                 </div>
             </div>
             <!-- /Page Header -->
-
 
             <div class="row">
                 <div class="col-lg-12">
@@ -61,22 +59,45 @@
                                         <input type="text" name="phone_number" class="form-control"
                                             placeholder="Please enter phone number" value="{{ $shopInfo->phone_number }}">
                                     </div>
+
+                                    <!-- ── Address + Location Button ─────────────────────── -->
                                     <div class="col-lg-6 form-group">
                                         <label>Address</label>
-                                        <input type="text" id="address" name="address"
-                                            value="{{ old('address') ?? $shopInfo->address }}" class="form-control"
-                                            placeholder="Address">
-                                        <input type="hidden" name="latitude" id="latitude"
-                                            value="{{ $shopInfo->latitude }}">
-                                        <input type="hidden" name="longitude" id="longitude"
-                                            value="{{ $shopInfo->longitude }}">
+                                        <div class="d-flex gap-2 align-items-start">
+                                            <div class="flex-grow-1">
+                                                <input type="text" id="address" name="address"
+                                                    value="{{ old('address') ?? $shopInfo->address }}"
+                                                    class="form-control"
+                                                    placeholder="Type address or search..."
+                                                    autocomplete="off">
+                                            </div>
+                                            <!-- 🗺️ View on Google Maps Button -->
+                                            @if($shopInfo->latitude && $shopInfo->longitude)
+                                            <a href="https://www.google.com/maps?q={{ $shopInfo->latitude }},{{ $shopInfo->longitude }}"
+                                               target="_blank"
+                                               class="btn btn-outline-success flex-shrink-0"
+                                               title="View saved location on Google Maps"
+                                               style="white-space:nowrap; height:38px; margin-top:2px;">
+                                                <i class="fa fa-map-marker-alt me-1"></i> View on Map
+                                            </a>
+                                            @else
+                                            <button type="button" class="btn btn-outline-secondary flex-shrink-0 disabled"
+                                                    style="white-space:nowrap; height:38px; margin-top:2px;"
+                                                    title="No location saved yet">
+                                                <i class="fa fa-map-marker-alt me-1"></i> No Location
+                                            </button>
+                                            @endif
+                                        </div>
+
+                                        <!-- Hidden lat/lon fields -->
+                                        <input type="hidden" name="latitude"  id="latitude"  value="{{ $shopInfo->latitude }}">
+                                        <input type="hidden" name="longitude" id="longitude" value="{{ $shopInfo->longitude }}">
                                     </div>
+
                                     <div class="col-lg-12 form-group">
                                         <label for="name">Description</label>
-                                        <textarea name="description" class="form-control" style="height: 100px" id="">{{ $shopInfo->description }}</textarea>
+                                        <textarea name="description" class="form-control" style="height: 100px">{{ $shopInfo->description }}</textarea>
                                     </div>
-
-
                                 </div>
                             </div>
 
@@ -88,35 +109,48 @@
                                 </div>
                             </div>
                         </form>
-
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key={{ $google_api_key }}&libraries=places"></script>
     <script>
+        // ── Google Places Autocomplete ───────────────────────────────────
+        var autocomplete;
+
         function initAutocomplete() {
+            var input    = document.getElementById('address');
+            var latField = document.getElementById('latitude');
+            var lngField = document.getElementById('longitude');
 
-            var input = document.getElementById('address');
-
-            var autocomplete = new google.maps.places.Autocomplete(input);
-
-            autocomplete.addListener('place_changed', function() {
-
-                var place = autocomplete.getPlace();
-
-                if (!place.geometry) {
-                    return;
-                }
-
-                document.getElementById('latitude').value = place.geometry.location.lat();
-                document.getElementById('longitude').value = place.geometry.location.lng();
+            autocomplete = new google.maps.places.Autocomplete(input, {
+                types: ['geocode']
             });
 
+            // ✅ Jab user dropdown se address select kare — lat/lon update hoga
+            autocomplete.addListener('place_changed', function () {
+                var place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    // User ne select nahi kiya, sirf type kiya
+                    latField.value = '';
+                    lngField.value = '';
+                    return;
+                }
+                latField.value = place.geometry.location.lat();
+                lngField.value = place.geometry.location.lng();
+            });
+
+            // ✅ Jab user address field mein kuch type kare — purani lat/lon clear
+            input.addEventListener('input', function () {
+                latField.value = '';
+                lngField.value = '';
+            });
         }
 
-        google.maps.event.addDomListener(window, 'load', initAutocomplete);
+        // Script synchronous load ho raha hai, DOMContentLoaded pe init karo
+        document.addEventListener('DOMContentLoaded', initAutocomplete);
     </script>
 @endsection

@@ -73,8 +73,10 @@ class AdminController extends Controller
 
     public function shopsCreate()
     {
-        $title = 'Create Shop';
-        return view('admin.shops.create', compact('title'));
+        $title          = 'Create Shop';
+        $settings       = Settings::first();
+        $googleApiKey   = $settings->google_api_key ?? '';
+        return view('admin.shops.create', compact('title', 'googleApiKey'));
     }
 
     public function shopsStore(Request $request)
@@ -115,9 +117,11 @@ class AdminController extends Controller
 
     public function shopsEdit($id)
     {
-        $title = 'Edit Shop';
-        $shopItem = shop::findOrFail($id);
-        return view('admin.shops.edit', compact('title', 'shopItem'));
+        $title          = 'Edit Shop';
+        $shopItem       = shop::findOrFail($id);
+        $settings       = Settings::first();
+        $googleApiKey   = $settings->google_api_key ?? '';
+        return view('admin.shops.edit', compact('title', 'shopItem', 'googleApiKey'));
     }
 
     public function shopsUpdate(Request $request, $id)
