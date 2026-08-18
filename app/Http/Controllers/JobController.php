@@ -445,7 +445,7 @@ class JobController extends Controller
         $key = $request->key;
         $value = $request->value;
 
-        $reviews = Reviews::where($key, $value)->latest()->get();
+        $reviews = Reviews::with('userInfo')->where($key, $value)->latest()->get();
 
         return response()->json([
             'status' => 'success',
