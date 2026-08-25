@@ -302,7 +302,7 @@
             <div class="row align-items-center mb-4">
                 <div class="col">
                     <h3 class="page-title fw-bold" style="font-size: 1.6rem; color: #0f172a;">Backup & Restore Center</h3>
-                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Configure scheduled daily backups or compile
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Configure scheduled automatic backups or compile
                         system records locally and externally.</p>
                 </div>
                 <div class="col-auto">
@@ -333,9 +333,9 @@
                                 {{-- Schedule switch --}}
                                 <div class="setting-item">
                                     <div>
-                                        <h6 class="fw-bold mb-1" style="color: #334155;">Daily Automatic Backup</h6>
+                                        <h6 class="fw-bold mb-1" style="color: #334155;">Automatic Scheduled Backup</h6>
                                         <p class="text-muted mb-0" style="font-size: 0.8rem; max-width: 250px;">Run full
-                                            database and uploaded asset exports automatically each day.</p>
+                                            database and uploaded asset exports automatically on schedule.</p>
                                     </div>
                                     <label class="switch">
                                         <input type="checkbox" name="auto_backup" value="1" {{ $settings->auto_backup ? 'checked' : '' }}>
@@ -345,11 +345,10 @@
 
                                 {{-- Retention Policy --}}
                                 <div class="form-group mb-4">
-                                    <label for="retention_days">Backup Retention Limit (Days)</label>
+                                    <label for="retention_days">Backup Interval & Retention (Days)</label>
                                     <input type="number" name="retention_days" id="retention_days" class="form-control"
                                         min="1" max="365" value="{{ $settings->retention_days }}" required>
-                                    <small class="text-muted mt-1 d-block">Backups older than this number of days will be
-                                        deleted to conserve server space.</small>
+                                    <small class="text-muted mt-1 d-block">A new backup will be generated every this many days. Older backups will also be deleted to conserve server space.</small>
                                 </div>
 
                                 {{-- External Storage Path --}}
@@ -528,6 +527,9 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="d-flex justify-content-end mt-4 px-3">
+                                {{ $logs->links('pagination::bootstrap-5') }}
                             </div>
                         </div>
                     </div>

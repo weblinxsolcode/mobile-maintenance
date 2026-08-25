@@ -14,7 +14,7 @@ Artisan::command('inspire', function () {
 |--------------------------------------------------------------------------
 |
 | The backup:run-auto command checks the BackupSetting.auto_backup flag
-| before running. It runs daily at midnight.
+| before running. It runs every minute.
 |
 | IMPORTANT — For this to fire automatically you must set up a scheduler:
 |
@@ -29,7 +29,7 @@ Artisan::command('inspire', function () {
 */
 
 Schedule::command('backup:run-auto')
-    ->daily()
+    ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground()
     ->onFailure(function () {

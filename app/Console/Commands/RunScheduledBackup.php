@@ -29,13 +29,9 @@ class RunScheduledBackup extends Command
      * Execute the console command.
      *
      * Logic:
-     *  - Scheduler fires this command DAILY (every day at midnight).
-     *  - But we only actually run the backup if:
-     *      1. auto_backup is enabled in settings, AND
-     *      2. At least `retention_days` days have passed since the last successful backup.
-     *
-     * So if retention_days = 3, a backup is generated every 3 days.
-     * If retention_days = 1, a backup is generated every 1 day.
+     *  - Scheduler fires this command EVERY MINUTE.
+     *  - The backup is generated if auto_backup is enabled in settings.
+     *  - Old backups exceeding the `retention_days` limit are cleaned up.
      */
     public function handle(): int
     {
@@ -73,8 +69,8 @@ class RunScheduledBackup extends Command
         }
 
         // ── 3. Run the backup ────────────────────────────────────────────────
-        $this->info("[Backup] Starting automatic backup (every {$intervalDays} day(s) interval)...");
-        Log::info("Scheduled backup started. Interval: every {$intervalDays} day(s).");
+        $this->info("[Backup] Starting automatic scheduled backup (Interval: {$intervalDays} days)...");
+        Log::info("Scheduled backup started.");
 
         $service = new BackupService();
         $result  = $service->run(true);

@@ -545,9 +545,14 @@
                 <h1 class="jd-hero-title">
                     {{ $appliedJobs->brand ?? 'N/A' }} &mdash; {{ $appliedJobs->model ?? 'N/A' }}
                 </h1>
-                <p class="jd-hero-service">{{ $appliedJobs->service_type ?? 'N/A' }}</p>
+                <p class="jd-hero-service">{{ $appliedJobs->service_type ?? 'N/A' }} {{ $appliedJobs->warranty_months ? '(' . $appliedJobs->warranty_months . ' Months)' : '' }}</p>
             </div>
             @php
+            $acceptedOffer = $appliedJobs->jobApplications
+            ->where('shop_id', session()->get('shop_id'))
+            ->where('status', 'accepted')
+            ->first();
+
             $existingOffer = $appliedJobs->jobApplications
             ->where('shop_id', session()->get('shop_id'))
             ->first();
@@ -556,12 +561,19 @@
 
             @endphp
             <div>
-                @if ($existingOffer && $existingOffer->status == 'accepted')
+                @if ($acceptedOffer)
                 <span class="badge bg-success px-3 py-2 fs-6 fw-semibold"><i class="fe fe-check-circle"></i> Offer Accepted</span>
                 @elseif ($serviceID->service_id != null)
+                @if (strtolower(trim($appliedJobs->service_type)) === 'with warranty')
+                <button class="btn btn-primary" data-bs-toggle="modal"
+                    data-bs-target="#acceptWarrantyModal{{ $appliedJobs->id }}">
+                    <i class="fe fe-check-circle"></i> Accept Offer
+                </button>
+                @else
                 <a href="{{ route('shop.appliedJobs.acceptOffer', $appliedJobs->id) }}" class="btn btn-primary">
                     <i class="fe fe-check-circle"></i> Accept Offer
                 </a>
+                @endif
                 @elseif ($existingOffer)
                 <button class="btn btn-primary" data-bs-toggle="modal"
                     data-bs-target="#editOfferModal{{ $appliedJobs->id }}">
@@ -631,7 +643,7 @@
                     </tr>
                     <tr>
                         <td class="jd-key">Service Type</td>
-                        <td class="jd-val">{{ $appliedJobs->service_type ?? 'N/A' }}</td>
+                        <td class="jd-val">{{ $appliedJobs->service_type ?? 'N/A' }} {{ $appliedJobs->warranty_months ? '(' . $appliedJobs->warranty_months . ' Months)' : '' }}</td>
                     </tr>
                 </table>
 
@@ -746,4 +758,28 @@
 
 {{-- Submit Offer Modal --}}
 @include('shop.applied-jobs.submitOfferModal')
+
+{{-- Accept Warranty Modal --}}
+<div class="modal fade" id="acceptWarrantyModal{{ $appliedJobs->id }}" tabindex="-1" aria-labelledby="acceptWarrantyModalLabel{{ $appliedJobs->id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="acceptWarrantyModalLabel{{ $appliedJobs->id }}">Accept Offer with Warranty</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('shop.appliedJobs.acceptOffer', $appliedJobs->id) }}" method="GET">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="warranty_months{{ $appliedJobs->id }}" class="form-label">Number of Warranty Months</label>
+                        <input type="number" class="form-control" id="warranty_months{{ $appliedJobs->id }}" name="warranty_months" min="1" required placeholder="e.g. 1, 2, 3">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Accept Offer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection

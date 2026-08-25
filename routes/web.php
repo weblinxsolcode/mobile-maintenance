@@ -3,6 +3,13 @@
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
+
+Route::get('/migrate', function () {
+    Artisan::call('migrate');
+    return redirect()->back()->with('success', 'Database migrated successfully');
+});
+
+
 Route::get('/', function () {
     if (!session()->has('shop_id')) {
         return redirect()->route('shop.login');
@@ -11,10 +18,6 @@ Route::get('/', function () {
     return redirect()->route('shop.dashboard');
 });
 
-Route::get('/migrate', function () {
-    Artisan::call('migrate');
-    return redirect()->back()->with('success', 'Database migrated successfully');
-});
 
 // Route For Shop
 include 'shop.php';

@@ -351,6 +351,11 @@ class ShopController extends Controller
             $new->description = $request->description ?? null;
             $new->save();
 
+            if ($request->has('warranty_months')) {
+                $job->warranty_months = $request->warranty_months;
+                $job->save();
+            }
+
             return redirect()->back()->with('success', 'Offer submitted successfully');
         } catch (\Throwable $th) {
             return redirect()->back()->with([
@@ -1216,7 +1221,7 @@ class ShopController extends Controller
             ]
         );
 
-        $logs = \App\Models\BackupLog::orderBy('created_at', 'desc')->get();
+        $logs = \App\Models\BackupLog::orderBy('created_at', 'desc')->paginate(10);
 
         return view('shop.backup.index', compact('title', 'settings', 'logs'));
     }
