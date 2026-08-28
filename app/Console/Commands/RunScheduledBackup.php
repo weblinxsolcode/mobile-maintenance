@@ -53,23 +53,21 @@ class RunScheduledBackup extends Command
             return Command::SUCCESS;
         }
 
-        // ── 2. Check if enough days have passed since last backup ────────────
-        $intervalDays = (int) ($settings->retention_days ?? 1);
-        $intervalDays = max(1, $intervalDays); // safety: never less than 1
+        // ── 2. Check if enough time has passed since last backup ────────────
+        $intervalMinutes = 1;
 
         if (!$this->option('force') && $settings->last_backup_at !== null) {
-            $daysSinceLast = (int) Carbon::now()->diffInDays($settings->last_backup_at);
+            $minutesSinceLast = (int) abs(Carbon::now()->diffInMinutes($settings->last_backup_at));
 
-            if ($daysSinceLast < $intervalDays) {
-                $nextBackupIn = $intervalDays - $daysSinceLast;
-                $this->info("[Backup] Interval not reached yet. Last backup: {$settings->last_backup_at->toDateTimeString()}. Next backup in {$nextBackupIn} day(s). (Interval: every {$intervalDays} day(s))");
-                Log::info("Scheduled backup skipped: interval not reached. Last backup {$daysSinceLast}d ago, interval is every {$intervalDays}d.");
+            if ($minutesSinceLast < $intervalMinutes) {
+                $this->info("[Backup] Interval not reached yet. Last backup: {$settings->last_backup_at->toDateTimeString()}. (Interval: every {$intervalMinutes} minute(s))");
+                Log::info("Scheduled backup skipped: interval not reached. Last backup {$minutesSinceLast}m ago, interval is every {$intervalMinutes}m.");
                 return Command::SUCCESS;
             }
         }
 
         // ── 3. Run the backup ────────────────────────────────────────────────
-        $this->info("[Backup] Starting automatic scheduled backup (Interval: {$intervalDays} days)...");
+        $this->info("[Backup] Starting automatic scheduled backup (Interval: {$intervalMinutes} minute(s))...");
         Log::info("Scheduled backup started.");
 
         $service = new BackupService();
