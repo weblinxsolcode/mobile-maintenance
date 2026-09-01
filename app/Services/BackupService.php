@@ -224,9 +224,11 @@ class BackupService
      */
     protected function cleanup(int $days)
     {
-        $cutoff = Carbon::now()->subDays($days);
+        // Keep the latest $days successful backups and delete older ones
         $oldLogs = BackupLog::where('status', 'success')
-            ->where('created_at', '<', $cutoff)
+            ->orderBy('created_at', 'desc')
+            ->skip($days)
+            ->take(PHP_INT_MAX)
             ->get();
 
         foreach ($oldLogs as $log) {
