@@ -31,7 +31,6 @@ Artisan::command('inspire', function () {
 Schedule::command('backup:run-auto')
     ->everyMinute()
     ->withoutOverlapping()
-    ->runInBackground()
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Scheduled backup:run-auto command failed.');
     });

@@ -54,7 +54,7 @@ class RunScheduledBackup extends Command
         }
 
         // ── 2. Check if enough time has passed since last backup ────────────
-        $intervalMinutes = 1440;
+        $intervalMinutes = 1;
 
         if (!$this->option('force') && $settings->last_backup_at !== null) {
             $minutesSinceLast = (int) abs(Carbon::now()->diffInMinutes($settings->last_backup_at));
