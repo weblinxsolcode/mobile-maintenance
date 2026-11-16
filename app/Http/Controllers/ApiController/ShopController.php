@@ -97,11 +97,23 @@ class ShopController extends Controller
         ], 200);
     }
 
-    // Api For Get All Shop
-    public function getAllService()
+    // Api For Get All Service
+    public function getAllService(Request $request)
     {
-        $services = Service::with('metas', 'shops')
-            ->orderBy('sort_order', 'asc')
+        $query = Service::with('metas', 'shops');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'LIKE', "%{$search}%")
+                    ->orWhere('description', 'LIKE', "%{$search}%")
+                    ->orWhereHas('metas', function ($mq) use ($search) {
+                        $mq->where('value', 'LIKE', "%{$search}%");
+                    });
+            });
+        }
+
+        $services = $query->orderBy('sort_order', 'asc')
             ->paginate(10);
 
         $services->getCollection()->transform(function ($service) {

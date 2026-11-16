@@ -30,8 +30,22 @@ class ShopController extends Controller
 
     public function __construct()
     {
-        $this->database = app('firebase.database');
-        $this->firebase = (new Factory)->withServiceAccount(base_path('storage/app/google.json'));
+        try {
+            $this->database = app('firebase.database');
+        } catch (\Throwable $e) {
+            $this->database = null;
+        }
+
+        try {
+            $googleJsonPath = base_path('storage/app/google.json');
+            if (file_exists($googleJsonPath)) {
+                $this->firebase = (new Factory)->withServiceAccount($googleJsonPath);
+            } else {
+                $this->firebase = null;
+            }
+        } catch (\Throwable $e) {
+            $this->firebase = null;
+        }
     }
     public function showLogin()
     {

@@ -34,8 +34,11 @@ class customBlock
 
     public static function getFireBaseData($path, $database)
     {
-
         $array = [];
+
+        if (!$database) {
+            return collect($array);
+        }
 
         try {
             $list = $database->getReference($path)->getValue();
@@ -50,22 +53,50 @@ class customBlock
 
     public static function pushFireBaseData($path, $database, $value)
     {
-        $database->getReference($path)->push($value);
+        if (!$database) {
+            return;
+        }
+
+        try {
+            $database->getReference($path)->push($value);
+        } catch (\Throwable $th) {
+            \Illuminate\Support\Facades\Log::warning('Firebase push failed: ' . $th->getMessage());
+        }
     }
 
     public static function storeFireBaseData($path, $database, $value)
     {
-        $database->getReference($path)->set($value);
+        if (!$database) {
+            return;
+        }
+
+        try {
+            $database->getReference($path)->set($value);
+        } catch (\Throwable $th) {
+            \Illuminate\Support\Facades\Log::warning('Firebase store failed: ' . $th->getMessage());
+        }
     }
 
     public static function updateFireBaseData($path, $database, $value)
     {
-        $database->getReference($path)->update($value);
+        if (!$database) {
+            return;
+        }
+
+        try {
+            $database->getReference($path)->update($value);
+        } catch (\Throwable $th) {
+            \Illuminate\Support\Facades\Log::warning('Firebase update failed: ' . $th->getMessage());
+        }
     }
 
     public static function getSpecificData($path, $database)
     {
         $item = null;
+
+        if (!$database) {
+            return $item;
+        }
 
         try {
             $list = $database->getReference($path)->getValue();
@@ -125,19 +156,22 @@ class customBlock
 
     public static function deleteFirebaseData($path, $database)
     {
+        if (!$database) {
+            return;
+        }
+
         try {
             $database->getReference($path)->remove();
         } catch (\Throwable $th) {
-            throw new \Exception('Failed to delete data: '.$th->getMessage());
+            \Illuminate\Support\Facades\Log::warning('Failed to delete data: '.$th->getMessage());
         }
     }
 
     public static function generateNotificaions($userID, $title, $description)
     {
         try {
-    
             $messaging = app('firebase.messaging');
-    
+
             $message = CloudMessage::fromArray([
                 'notification' => [
                     'title' => $title,
@@ -145,14 +179,12 @@ class customBlock
                 ],
                 'topic' => ('00'.$userID) ?? 'problem',
             ]);
-    
+
             $messaging->send($message);
-    
         } catch (\Throwable $e) {
-    
-            throw new \Exception('Failed to send notification: '.$e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('Failed to send push notification: '.$e->getMessage());
         }
-    
+
         // Save DB notification
         $new = new Notifications();
         $new->user_id = $userID;
@@ -163,6 +195,14 @@ class customBlock
     }
     public static function deleteRecord($path, $database)
     {
-        $database->getReference($path)->remove();
+        if (!$database) {
+            return;
+        }
+
+        try {
+            $database->getReference($path)->remove();
+        } catch (\Throwable $th) {
+            \Illuminate\Support\Facades\Log::warning('Firebase delete record failed: '.$th->getMessage());
+        }
     }
 }

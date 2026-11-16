@@ -472,7 +472,7 @@ class JobController extends Controller
         $userID = $request->user_id;
 
         $list = JobListings::where('user_id', $userID)->with('jobApplications', 'userInfo')
-            ->orderBy('sort_order', 'asc')->get();
+            ->latest()->get();
 
         return response()->json([
             'status' => 'success',
