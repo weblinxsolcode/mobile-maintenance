@@ -9,6 +9,7 @@ class shop extends Model
     protected $table = 'shops';
 
     protected $fillable = [
+        'users_id',
         'username',
         'email',
         'phone_number',
@@ -19,6 +20,7 @@ class shop extends Model
         'longitude',
         'description',
         'profile',
+        'status',
     ];
 
     public function reviews()

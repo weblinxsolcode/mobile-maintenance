@@ -15,11 +15,13 @@ class BackupService
      * Run the backup process.
      *
      * @param bool $isAuto Set true if triggered by scheduler
+     * @param bool $includeMedia Set true to include uploads/media folders (Full Backup)
      * @return array Result summary
      */
-    public function run(bool $isAuto = false): array
+    public function run(bool $isAuto = false, bool $includeMedia = false): array
     {
         $type = $isAuto ? 'auto' : 'manual';
+        $contentType = $includeMedia ? 'full' : 'db';
         $startTime = microtime(true);
         
         // Ensure backups directory exists
@@ -35,12 +37,14 @@ class BackupService
                 'auto_backup' => true,
                 'external_path' => null,
                 'retention_days' => 7,
+                'media_interval_days' => 7,
             ]);
         }
 
-        // Generate dynamic filename
+        // Generate dynamic filename based on scope
         $timestamp = Carbon::now()->format('Y-m-d_H-i-s');
-        $filename = "backup_{$type}_{$timestamp}.zip";
+        $prefix = $includeMedia ? "backup_full_{$type}" : "backup_db_{$type}";
+        $filename = "{$prefix}_{$timestamp}.zip";
         $zipPath = $backupsDir . '/' . $filename;
 
         // Temporary SQL file path
@@ -108,25 +112,27 @@ class BackupService
             // Add the database SQL file
             $zip->addFile($tempSqlFile, 'database_backup.sql');
 
-            // Add uploaded media files from public directories
-            $uploadDirs = [
-                'shops' => public_path('shops'),
-                'jobs' => public_path('jobs'),
-                'userImages' => public_path('userImages'),
-            ];
+            // Add uploaded media files from public directories ONLY if full backup ($includeMedia) is requested
+            if ($includeMedia) {
+                $uploadDirs = [
+                    'shops' => public_path('shops'),
+                    'jobs' => public_path('jobs'),
+                    'userImages' => public_path('userImages'),
+                ];
 
-            foreach ($uploadDirs as $localName => $fullPath) {
-                if (file_exists($fullPath) && is_dir($fullPath)) {
-                    $files = new \RecursiveIteratorIterator(
-                        new \RecursiveDirectoryIterator($fullPath, \RecursiveDirectoryIterator::SKIP_DOTS),
-                        \RecursiveIteratorIterator::LEAVES_ONLY
-                    );
+                foreach ($uploadDirs as $localName => $fullPath) {
+                    if (file_exists($fullPath) && is_dir($fullPath)) {
+                        $files = new \RecursiveIteratorIterator(
+                            new \RecursiveDirectoryIterator($fullPath, \RecursiveDirectoryIterator::SKIP_DOTS),
+                            \RecursiveIteratorIterator::LEAVES_ONLY
+                        );
 
-                    foreach ($files as $file) {
-                        if (!$file->isDir()) {
-                            $filePath = $file->getRealPath();
-                            $relativePath = 'uploads/' . $localName . '/' . substr($filePath, strlen($fullPath) + 1);
-                            $zip->addFile($filePath, $relativePath);
+                        foreach ($files as $file) {
+                            if (!$file->isDir()) {
+                                $filePath = $file->getRealPath();
+                                $relativePath = 'uploads/' . $localName . '/' . substr($filePath, strlen($fullPath) + 1);
+                                $zip->addFile($filePath, $relativePath);
+                            }
                         }
                     }
                 }
@@ -168,13 +174,18 @@ class BackupService
                 'external_path' => $externalPath,
                 'size' => $readableSize,
                 'type' => $type,
+                'content_type' => $contentType,
                 'status' => 'success',
             ]);
 
-            // Update settings last_backup timestamp
-            $settings->update([
+            // Update settings timestamps
+            $settingsUpdates = [
                 'last_backup_at' => Carbon::now(),
-            ]);
+            ];
+            if ($includeMedia) {
+                $settingsUpdates['last_media_backup_at'] = Carbon::now();
+            }
+            $settings->update($settingsUpdates);
 
             // 5. HOUSEKEEPING (CLEANUP OLD BACKUPS)
             $this->cleanup($settings->retention_days);
@@ -183,6 +194,7 @@ class BackupService
                 'success' => true,
                 'filename' => $filename,
                 'size' => $readableSize,
+                'content_type' => $contentType,
                 'external_path' => $externalPath,
                 'duration' => round(microtime(true) - $startTime, 2) . 's',
             ];
@@ -202,6 +214,7 @@ class BackupService
                 'path' => 'backups/' . $filename,
                 'size' => '0 B',
                 'type' => $type,
+                'content_type' => $contentType,
                 'status' => 'failed',
                 'error_message' => $th->getMessage(),
             ]);
@@ -279,7 +292,7 @@ class BackupService
 
         // 1. CREATE SAFETY BACKUP OF THE CURRENT STATE BEFORE OVERWRITING
         try {
-            $safetyBackup = $this->run(false); // Trigger manual safety backup
+            $safetyBackup = $this->run(false, true); // Trigger full safety backup before restore
             if (!$safetyBackup['success']) {
                 return [
                     'success' => false,
@@ -339,7 +352,7 @@ class BackupService
 
         // 1. CREATE SAFETY BACKUP OF THE CURRENT STATE BEFORE OVERWRITING
         try {
-            $safetyBackup = $this->run(false); // Trigger manual safety backup
+            $safetyBackup = $this->run(false, true); // Trigger full safety backup before restore
             if (!$safetyBackup['success']) {
                 return [
                     'success' => false,
@@ -417,54 +430,54 @@ class BackupService
         // Execute SQL import
         DB::unprepared($sqlContent);
 
-        // 2. FILE DIRECTORIES RESTORE
-        $uploadDirs = [
-            'shops' => public_path('shops'),
-            'jobs' => public_path('jobs'),
-            'userImages' => public_path('userImages'),
-        ];
+        // 2. FILE DIRECTORIES RESTORE (Only executed if backup archive contains uploads folder)
+        $extractedUploadsDir = $tempExtractDir . '/uploads';
+        $hasUploads = file_exists($extractedUploadsDir) && is_dir($extractedUploadsDir);
 
-        $backupDirs = [];
-        try {
-            foreach ($uploadDirs as $name => $targetPath) {
-                $extractedSource = $tempExtractDir . '/uploads/' . $name;
-                
-                // Backup existing directories by renaming
-                $bakPath = $targetPath . '_restore_bak';
-                if (file_exists($targetPath)) {
-                    if (!rename($targetPath, $bakPath)) {
-                        throw new \Exception("Failed to create temporary backup of existing directory: {$name}");
-                    }
-                    $backupDirs[$name] = $bakPath;
-                }
+        if ($hasUploads) {
+            $uploadDirs = [
+                'shops' => public_path('shops'),
+                'jobs' => public_path('jobs'),
+                'userImages' => public_path('userImages'),
+            ];
 
-                // Place extracted folders into target path
-                if (file_exists($extractedSource) && is_dir($extractedSource)) {
-                    if (!$this->moveDirectory($extractedSource, $targetPath)) {
-                        throw new \Exception("Failed to restore directory: {$name}");
-                    }
-                } else {
-                    // If directory was not present in the backup, create an empty target directory
-                    if (!file_exists($targetPath)) {
-                        mkdir($targetPath, 0755, true);
+            $backupDirs = [];
+            try {
+                foreach ($uploadDirs as $name => $targetPath) {
+                    $extractedSource = $tempExtractDir . '/uploads/' . $name;
+                    
+                    // Only backup and restore if this folder actually exists in the backup ZIP
+                    if (file_exists($extractedSource) && is_dir($extractedSource)) {
+                        $bakPath = $targetPath . '_restore_bak';
+                        if (file_exists($targetPath)) {
+                            if (!rename($targetPath, $bakPath)) {
+                                throw new \Exception("Failed to create temporary backup of existing directory: {$name}");
+                            }
+                            $backupDirs[$name] = $bakPath;
+                        }
+
+                        // Place extracted folders into target path
+                        if (!$this->moveDirectory($extractedSource, $targetPath)) {
+                            throw new \Exception("Failed to restore directory: {$name}");
+                        }
                     }
                 }
+            } catch (\Throwable $fileEx) {
+                // Rollback directories on exception
+                foreach ($backupDirs as $name => $bakPath) {
+                    $targetPath = $uploadDirs[$name];
+                    if (file_exists($targetPath)) {
+                        $this->deleteDirectory($targetPath);
+                    }
+                    rename($bakPath, $targetPath);
+                }
+                throw $fileEx;
             }
-        } catch (\Throwable $fileEx) {
-            // Rollback directories on exception
+
+            // Cleanup backup directories on success
             foreach ($backupDirs as $name => $bakPath) {
-                $targetPath = $uploadDirs[$name];
-                if (file_exists($targetPath)) {
-                    $this->deleteDirectory($targetPath);
-                }
-                rename($bakPath, $targetPath);
+                $this->deleteDirectory($bakPath);
             }
-            throw $fileEx;
-        }
-
-        // Cleanup backup directories on success
-        foreach ($backupDirs as $name => $bakPath) {
-            $this->deleteDirectory($bakPath);
         }
 
         // Cleanup extracted files

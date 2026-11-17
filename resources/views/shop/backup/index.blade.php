@@ -75,6 +75,33 @@
             color: #5b21b6;
         }
 
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            flex-shrink: 0;
+            line-height: 1.2;
+        }
+
+        .type-badge.db {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+
+        .type-badge.full {
+            background-color: #f3e8ff;
+            color: #7e22ce;
+            border: 1px solid #e9d5ff;
+        }
+
         .form-group label {
             font-weight: 600;
             color: #334155;
@@ -125,18 +152,20 @@
 
         .backup-table th {
             background-color: #f1f5f9;
-            padding: 1rem;
+            padding: 0.85rem 1rem;
             text-align: left;
             font-weight: 600;
             color: #475569;
             border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
         }
 
         .backup-table td {
-            padding: 1rem;
+            padding: 0.85rem 1rem;
             border-bottom: 1px solid #f1f5f9;
             color: #334155;
             vertical-align: middle;
+            white-space: nowrap;
         }
 
         .backup-table tr:hover td {
@@ -302,15 +331,26 @@
             <div class="row align-items-center mb-4">
                 <div class="col">
                     <h3 class="page-title fw-bold" style="font-size: 1.6rem; color: #0f172a;">Backup & Restore Center</h3>
-                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Configure scheduled automatic backups or compile
-                        system records locally and externally.</p>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem;">Configure automated daily database backups & weekly media archives to keep backup size minimal.</p>
                 </div>
-                <div class="col-auto">
+                <div class="col-auto d-flex align-items-center gap-2">
+                    {{-- Quick DB Backup (~1-2 MB) --}}
                     <form action="{{ route('shop.backups.run') }}" method="POST" onsubmit="showProcessingSpinner()">
                         @csrf
-                        <button type="submit" class="btn-backup-trigger d-flex align-items-center gap-2" id="btnRunBackup">
-                            <i class="fa fa-play"></i>
-                            <span>Generate Backup Now</span>
+                        <input type="hidden" name="scope" value="db">
+                        <button type="submit" class="btn-backup-trigger d-flex align-items-center gap-2" id="btnRunDbBackup" title="Quick database SQL backup only (~1-2 MB)">
+                            <i class="fa fa-database"></i>
+                            <span>Quick DB Backup (~1 MB)</span>
+                        </button>
+                    </form>
+
+                    {{-- Full Backup with Photos (~480 MB) --}}
+                    <form action="{{ route('shop.backups.run') }}" method="POST" onsubmit="showProcessingSpinner()">
+                        @csrf
+                        <input type="hidden" name="scope" value="full">
+                        <button type="submit" class="btn d-flex align-items-center gap-2 px-3 py-2 fw-semibold rounded-3 shadow-sm bg-white" id="btnRunFullBackup" style="border: 1px solid #cbd5e1; color: #334155;" title="Full backup including database and all uploaded media files">
+                            <i class="fa fa-archive text-primary"></i>
+                            <span>Full Backup (with Photos)</span>
                         </button>
                     </form>
                 </div>
@@ -334,8 +374,10 @@
                                 <div class="setting-item">
                                     <div>
                                         <h6 class="fw-bold mb-1" style="color: #334155;">Automatic Scheduled Backup</h6>
-                                        <p class="text-muted mb-0" style="font-size: 0.8rem; max-width: 250px;">Run full
-                                            database and uploaded asset exports automatically on schedule.</p>
+                                        <p class="text-muted mb-0" style="font-size: 0.8rem; max-width: 250px;">
+                                            <strong>Daily (24h):</strong> Database (~1-2 MB).<br>
+                                            <strong>Weekly:</strong> Full system with images.
+                                        </p>
                                     </div>
                                     <label class="switch">
                                         <input type="checkbox" name="auto_backup" value="1" {{ $settings->auto_backup ? 'checked' : '' }}>
@@ -344,11 +386,19 @@
                                 </div>
 
                                 {{-- Retention Policy --}}
-                                <div class="form-group mb-4">
-                                    <label for="retention_days">Backup Interval & Retention (Days)</label>
+                                <div class="form-group mb-3">
+                                    <label for="retention_days">Backup Retention (Days)</label>
                                     <input type="number" name="retention_days" id="retention_days" class="form-control"
                                         min="1" max="365" value="{{ $settings->retention_days }}" required>
-                                    <small class="text-muted mt-1 d-block">A new backup will be generated every this many days. Older backups will also be deleted to conserve server space.</small>
+                                    <small class="text-muted mt-1 d-block">Number of recent successful backups kept on the server before older ones are deleted.</small>
+                                </div>
+
+                                {{-- Weekly Media Backup Interval --}}
+                                <div class="form-group mb-4">
+                                    <label for="media_interval_days">Weekly Media Backup Interval (Days)</label>
+                                    <input type="number" name="media_interval_days" id="media_interval_days" class="form-control"
+                                        min="1" max="365" value="{{ $settings->media_interval_days ?? 7 }}" required>
+                                    <small class="text-muted mt-1 d-block">How often full uploaded photos & assets are included in auto-backup (default: every 7 days).</small>
                                 </div>
 
                                 {{-- External Storage Path --}}
@@ -365,9 +415,7 @@
                                 <div class="info-alert">
                                     <i class="fa fa-info-circle"></i>
                                     <div>
-                                        <strong>Dual-Storage Replication Strategy:</strong> By configuring a valid secondary
-                                        folder, the system replicates your backup file across two separate directories on
-                                        each run, guarding against local disk failures!
+                                        <strong>Size-Optimized Storage Strategy:</strong> Daily backups only save the core MySQL database (~1-2 MB), saving 99% bandwidth and disk space. Full media backups occur weekly.
                                     </div>
                                 </div>
 
@@ -428,7 +476,12 @@
                                 <i class="fa fa-history"></i> Backup Archive Logs
                             </span>
                             @if($settings->last_backup_at)
-                                <small class="opacity-75">Last success: {{ $settings->last_backup_at->diffForHumans() }}</small>
+                                <div class="text-end" style="font-size: 0.8rem; line-height: 1.3;">
+                                    <div>Last DB: <span class="fw-bold">{{ $settings->last_backup_at->diffForHumans() }}</span></div>
+                                    @if($settings->last_media_backup_at)
+                                        <div class="opacity-75">Last Media: {{ $settings->last_media_backup_at->diffForHumans() }}</div>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                         <div class="backup-card-body p-0">
@@ -449,9 +502,20 @@
                                             <tr>
                                                 <td class="mono-text">#{{ $loop->iteration }}</td>
                                                 <td>
-                                                    <div class="fw-semibold text-truncate"
-                                                        style="max-width: 180px; color: #1e293b;" title="{{ $log->filename }}">
-                                                        {{ $log->filename }}
+                                                    <div class="d-flex align-items-center gap-2 mb-1" style="white-space: nowrap;">
+                                                        @if(($log->content_type ?? 'full') === 'full')
+                                                            <span class="type-badge full" title="Full System Archive (Database + Uploaded Photos)">
+                                                                <i class="fa fa-archive"></i> FULL
+                                                            </span>
+                                                        @else
+                                                            <span class="type-badge db" title="Database SQL Only (~1-2 MB)">
+                                                                <i class="fa fa-database"></i> DB ONLY
+                                                            </span>
+                                                        @endif
+                                                        <span class="fw-semibold text-truncate"
+                                                            style="max-width: 220px; color: #1e293b;" title="{{ $log->filename }}">
+                                                            {{ $log->filename }}
+                                                        </span>
                                                     </div>
                                                     <small class="text-muted d-block font-bold">Size: {{ $log->size }}</small>
                                                 </td>
@@ -477,12 +541,13 @@
                                                         @endif
                                                     @endif
                                                 </td>
-                                                <td>
-                                                    <div style="font-size: 0.8rem; color: #475569;">
+                                                <td style="white-space: nowrap;">
+                                                    <div class="fw-semibold" style="font-size: 0.82rem; color: #334155;">
                                                         {{ $log->created_at->format('M d, Y') }}
                                                     </div>
-                                                    <small
-                                                        class="text-muted d-block">{{ $log->created_at->format('h:i A') }}</small>
+                                                    <small class="text-muted d-block" style="font-size: 0.75rem;">
+                                                        {{ $log->created_at->format('h:i A') }}
+                                                    </small>
                                                 </td>
                                                 <td style="text-align: center;">
                                                     <div class="d-flex align-items-center justify-content-center gap-2">

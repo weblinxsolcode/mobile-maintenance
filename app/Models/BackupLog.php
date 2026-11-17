@@ -14,7 +14,18 @@ class BackupLog extends Model
         'external_path',
         'size',
         'type',
+        'content_type',
         'status',
         'error_message',
     ];
+
+    public function isDbOnly(): bool
+    {
+        return $this->content_type === 'db';
+    }
+
+    public function isFull(): bool
+    {
+        return $this->content_type === 'full';
+    }
 }

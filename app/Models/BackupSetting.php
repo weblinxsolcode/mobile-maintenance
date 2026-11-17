@@ -14,11 +14,15 @@ class BackupSetting extends Model
         'external_path',
         'retention_days',
         'last_backup_at',
+        'last_media_backup_at',
+        'media_interval_days',
     ];
 
     protected $casts = [
         'auto_backup' => 'boolean',
         'retention_days' => 'integer',
+        'media_interval_days' => 'integer',
         'last_backup_at' => 'datetime',
+        'last_media_backup_at' => 'datetime',
     ];
 }

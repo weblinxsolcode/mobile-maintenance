@@ -88,6 +88,7 @@ class AdminController extends Controller
             'title'    => 'nullable|string|max:255',
             'address'  => 'nullable|string',
             'phone_number' => 'nullable|string',
+            'status'   => 'nullable|in:active,pending',
         ]);
 
         $profilePath = 'default.jpg';
@@ -134,6 +135,7 @@ class AdminController extends Controller
             'title'    => 'nullable|string|max:255',
             'address'  => 'nullable|string',
             'phone_number' => 'nullable|string',
+            'status'   => 'nullable|in:active,pending',
         ]);
 
         $profilePath = $shopItem->profile;

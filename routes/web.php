@@ -6,7 +6,41 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/migrate', function () {
     Artisan::call('migrate');
-    return redirect()->back()->with('success', 'Database migrated successfully');
+    return response('Database migrated successfully: ' . Artisan::output());
+});
+
+Route::get('/storage-link', function () {
+    $target = storage_path('app/public');
+    $link = public_path('storage');
+
+    if (file_exists($link) || is_link($link)) {
+        return response('The [public/storage] link already exists!');
+    }
+
+    if (!file_exists($target)) {
+        mkdir($target, 0755, true);
+    }
+
+    try {
+        if (@symlink($target, $link)) {
+            return response('Storage link created successfully via native symlink!');
+        }
+        
+        // Fallback using artisan if available
+        if (function_exists('exec')) {
+            Artisan::call('storage:link');
+            return response('Storage link created successfully: ' . Artisan::output());
+        }
+
+        return response('Could not create symlink automatically. Target: ' . $target . ' | Link: ' . $link);
+    } catch (\Throwable $e) {
+        return response('Error creating storage link: ' . $e->getMessage());
+    }
+});
+
+Route::get('/clear-cache', function () {
+    Artisan::call('optimize:clear');
+    return response('All caches cleared successfully: ' . Artisan::output());
 });
 
 

@@ -1232,6 +1232,7 @@ class ShopController extends Controller
                 'auto_backup' => true,
                 'external_path' => null,
                 'retention_days' => 7,
+                'media_interval_days' => 7,
             ]
         );
 
@@ -1244,6 +1245,7 @@ class ShopController extends Controller
     {
         $request->validate([
             'retention_days' => 'required|integer|min:1|max:365',
+            'media_interval_days' => 'nullable|integer|min:1|max:365',
             'external_path' => 'nullable|string',
         ]);
 
@@ -1267,18 +1269,24 @@ class ShopController extends Controller
             'auto_backup' => $autoBackup,
             'external_path' => $externalPath,
             'retention_days' => $request->retention_days,
+            'media_interval_days' => $request->input('media_interval_days', 7),
         ]);
 
         return redirect()->back()->with('success', 'Backup configuration settings updated successfully!');
     }
 
-    public function runManualBackup()
+    public function runManualBackup(Request $request)
     {
         $backupService = new \App\Services\BackupService();
-        $result = $backupService->run(false); // manual backup
+        $scope = $request->input('scope', 'db'); // 'db' or 'full'
+        $includeMedia = ($scope === 'full' || $request->boolean('include_media'));
+
+        $result = $backupService->run(false, $includeMedia); // manual backup
+
+        $scopeLabel = $includeMedia ? "Full backup (with photos)" : "Database-only backup";
 
         if ($result['success']) {
-            return redirect()->back()->with('success', "Backup archive '{$result['filename']}' ({$result['size']}) compiled and stored successfully!");
+            return redirect()->back()->with('success', "{$scopeLabel} '{$result['filename']}' ({$result['size']}) compiled and stored successfully!");
         } else {
             return redirect()->back()->with('error', "Backup processing failed: {$result['error']}");
         }
