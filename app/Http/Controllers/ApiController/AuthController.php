@@ -161,7 +161,7 @@ class AuthController extends Controller
         $user->status = 'active';
         $user->save();
 
-        userServices::generateNotification($user->id, 'Welcome!', 'Welcome to Mobile Maintenance. Your account is now active.');
+        userServices::generateNotification($user->id, 'Welcome!', 'Welcome to صيانة جوالي. Your account is now active');
 
         // $token = $user->createToken('token')->plainTextToken;
 

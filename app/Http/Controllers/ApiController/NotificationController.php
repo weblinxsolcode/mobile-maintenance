@@ -23,11 +23,26 @@ class NotificationController extends Controller
             ], 422);
         }
 
+        $isReadParam = $request->input('isRead', $request->input('is_read'));
+        if ($isReadParam == 1 || $isReadParam === '1' || $isReadParam === true) {
+            Notifications::where('user_id', $request->user_id)->update([
+                'is_read' => 1,
+            ]);
+        }
+
         $notifications = Notifications::where('user_id', $request->user_id)->latest()->get();
+
+        $unreadCount = Notifications::where('user_id', $request->user_id)
+            ->where(function ($query) {
+                $query->where('is_read', 0)
+                    ->orWhere('is_read', false)
+                    ->orWhereNull('is_read');
+            })->count();
 
         return response()->json([
             'status' => 'success',
             'count' => $notifications->count(),
+            'unread_count' => $unreadCount,
             'data' => $notifications,
         ], 200);
     }
